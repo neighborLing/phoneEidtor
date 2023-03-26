@@ -1,0 +1,3 @@
+iPhone11 414 896
+iPhone12 390 844
+iPhone13 400 800
