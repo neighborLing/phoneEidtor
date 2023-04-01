@@ -20,7 +20,6 @@ const MyComponent: React.FC<Props> = ({
                                       }) => {
     const dispatch = useDispatch();
     const phonesTextHandler = (text: string) => {
-        console.log('123', text)
         const phones = text.split('\n');
 
         return phones.reduce((acc: IPhone[], phone: string) => {
@@ -36,9 +35,9 @@ const MyComponent: React.FC<Props> = ({
         }, [])
     }
     return (
-        <div className={baseClassName} style={{}}>
+        <div className={baseClassName}>
             <LocalFileUploader label='上传手机类型' afterUpload={(text) => dispatch({
-                type: 'update',
+                type: 'updatePhones',
                 payload: phonesTextHandler(text),
                 })
             }/>

@@ -6,6 +6,7 @@ import {TreeItem} from "./components/Tree/type";
 import DataControl from "./components/DataControl";
 import store from "./store";
 import {Provider} from "react-redux";
+import ControlBar from "./components/ControlBar";
 
 function App() {
     const [treeData, setTreeData] = useState<TreeItem[]>([{
@@ -25,14 +26,13 @@ function App() {
         <Provider store={store}>
             <div style={{
                 display: 'flex',
-                width: '100vw',
                 justifyContent: 'space-between',
             }}>
-
                 <Tree />
                 <PhoneSelector />
-                <DataControl onExportImage={onTodo} onImportTemplate={onTodo} onExportTemplate={onTodo} />
+                <ControlBar />
             </div>
+            <DataControl onExportImage={onTodo} onImportTemplate={onTodo} onExportTemplate={onTodo} />
         </Provider>
     );
 }

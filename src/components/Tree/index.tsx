@@ -1,74 +1,152 @@
-import {Tree} from 'antd';
+import {Tree, Modal, Form, Input, Select, message} from 'antd';
 import type {DataNode, TreeProps} from 'antd/es/tree';
-import React, {useState} from 'react';
-import {DownOutlined, SmileOutlined} from '@ant-design/icons';
+import React, {useState, useEffect, ReactElement} from 'react';
+import {PlusOutlined} from '@ant-design/icons';
 import type {MenuProps} from 'antd';
 import {Dropdown, Space} from 'antd';
+import store from '../../store';
+import _ from 'lodash';
+import './index.less';
+import {useSelector} from 'react-redux';
+import {findParentNode, findCurrentNode} from '../../utils/tree';
+
+const cls = 'layout-tree'
 
 const x = 3;
 const y = 2;
 const z = 1;
 const defaultData: DataNode[] = [];
-
-const items: MenuProps['items'] = [
-    {
-        key: 'add-sibling',
-        label: '新增同级',
-    },
-    {
-        key: 'add-node',
-        label: '新增子节点',
-    },
-    {
-        key: 'delete',
-        label: '删除',
-    }
-];
-
-const generateData = (_level: number, _preKey?: React.Key, _tns?: DataNode[]) => {
-    const preKey = _preKey || '0';
-    const tns = _tns || defaultData;
-
-    const children = [];
-    for (let i = 0; i < x; i++) {
-        const key = `${preKey}-${i}`;
-        tns.push({
-            title: <div>
-                {key}
-                <Dropdown menu={{items}}>
-                    <Space>
-                        <DownOutlined/>
-                    </Space>
-                </Dropdown>
-            </div>, key
-        });
-        if (i < y) {
-            children.push(key);
-        }
-    }
-    if (_level < 0) {
-        return tns;
-    }
-    const level = _level - 1;
-    children.forEach((key, index) => {
-        tns[index].children = [];
-        return generateData(level, key, tns[index].children);
-    });
-};
-generateData(z);
+const {Option} = Select
 
 const LayoutTree: React.FC = () => {
-    const [gData, setGData] = useState(defaultData);
-    const [expandedKeys] = useState(['0-0', '0-0-0', '0-0-0-0']);
+    const {tree} = useSelector((state: any) => state.trees);
+    const [gData, setGData] = useState<DataNode[]>(defaultData);
+    const [expandedKeys, setExpandedKeys] = useState(['0-0', '0-0-0', '0-0-0-0']);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalInfo, setModalInfo] = useState<{
+        title: string
+        type: string
+    }>({
+        title: '',
+        type: ''
+    });
+    const [currentKey, setCurrentKey] = useState('');
+
+    useEffect(() => {
+        const treeData = formatToTreeData(gData)
+        store.dispatch({
+            type: 'updateLayoutTree',
+            payload: treeData
+        })
+    }, [gData])
+
+    function initGData() {
+        if (gData.length) return;
+        if (tree.length) {
+            const gData = formatToTreeNode(tree)
+            return setGData(gData)
+        }
+        const now = Date.now()
+        const key = `root-${now}`
+        const curItem: DataNode = {
+            title: <div onClick={() => setCurrentKey(key)}>
+                根节点
+                <Dropdown
+                    menu={{
+                        items
+                    }}
+                >
+                    <Space>
+                        <PlusOutlined/>
+                    </Space>
+                </Dropdown>
+            </div>, key, children: []
+        }
+        const data = [
+            curItem
+        ]
+        setGData(data)
+    }
+
+    useEffect(() => {
+        initGData()
+    }, [])
+
+    const items: MenuProps['items'] = [
+        {
+            key: 'add-sibling',
+            label: '新增同级',
+            onClick: () => {
+                showModal('add');
+            },
+        },
+        {
+            key: 'add-node',
+            label: '新增子节点',
+            onClick: () => {
+                showModal('addChild');
+            },
+        },
+        {
+            key: 'delete',
+            label: '删除',
+            onClick: () => {
+                showModal('delete');
+            },
+        }
+    ];
+
+    const formatToTreeData = (data: DataNode[]) => {
+        return data.map(item => {
+            if (item.children) {
+                const titleProps = (item.title as ReactElement)?.props || {}
+                return {
+                    ...item,
+                    title: titleProps?.children[0],
+                    children: formatToTreeData(item.children)
+                }
+            }
+            return item
+        })
+    }
+
+    const formatToTreeNode = (data: DataNode[]) => {
+        return data.map(item => {
+            // @ts-ignore
+            const title = <div onClick={() => setCurrentKey(item.key as string)}>
+                {item.title}
+                <Dropdown
+                    menu={{
+                        items
+                    }}
+                >
+                    <Space>
+                        <PlusOutlined/>
+                    </Space>
+                </Dropdown>
+            </div>
+            if (item.children) {
+                // @ts-ignore
+                return {
+                    ...item,
+                    title,
+                    children: formatToTreeNode(item.children)
+                }
+            } else {
+                return {
+                    ...item,
+                    title
+                }
+            }
+        })
+    }
 
     const onDragEnter: TreeProps['onDragEnter'] = info => {
-        console.log(info);
         // expandedKeys 需要受控时设置
         // setExpandedKeys(info.expandedKeys)
     };
 
     const onDrop: TreeProps['onDrop'] = info => {
-        console.log(info);
         const dropKey = info.node.key;
         const dragKey = info.dragNode.key;
         const dropPos = info.node.pos.split('-');
@@ -129,22 +207,156 @@ const LayoutTree: React.FC = () => {
                 ar.splice(i! + 1, 0, dragObj!);
             }
         }
-        setGData(data);
+        setGData(_.cloneDeep(data));
     };
 
+    // 新增节点的表单数据
+    const [form] = Form.useForm();
+
+    const showModal = (type: 'add' | 'addChild' | 'delete') => {
+        form.resetFields()
+        setModalVisible(true);
+        setModalInfo({
+            ...modalInfo,
+            title: type.includes('add') ? (type === 'add' ? '新增同级' : '新增子节点') : '删除节点',
+            type
+        })
+    };
+
+    const handleOk = () => {
+        const {type} = modalInfo
+
+        if (type === 'delete') {
+            const parentNode = findParentNode(gData, currentKey)
+            if (parentNode) {
+                parentNode.children = parentNode.children?.filter(item => item.key !== currentKey)
+
+                setGData(_.cloneDeep(gData))
+            }
+            setModalVisible(false);
+        } else {
+            form.submit();
+        }
+    };
+
+    const handleCancel = () => {
+        setModalVisible(false);
+    };
+
+
+    const onFinish = (values: any) => {
+        const {type} = modalInfo
+        const {nodeType, nodeName} = values
+        const now = Date.now()
+        const key = `${nodeType}-${now}`
+        const position = {
+            width: 100,
+            height: 100,
+            left: 100,
+            top: 100,
+            remote: 0,
+            background: ''
+        }
+        const newItem = {
+            title: <div onClick={() => setCurrentKey(key)}>
+                {nodeName}
+                <Dropdown
+                    menu={{
+                        items
+                    }}
+                >
+                    <Space>
+                        <PlusOutlined/>
+                    </Space>
+                </Dropdown>
+            </div>, key, children: [], nodeType, position
+        }
+        if (type === 'add') {
+            //     根据id获取其父节点
+            const parentNode = findParentNode(gData, currentKey)
+            if (parentNode) {
+                parentNode?.children?.push(newItem)
+            }
+        } else {
+            const curItem = findCurrentNode(gData, currentKey)
+            if (!curItem) {
+                return message.info('没找到')
+            }
+            curItem.children = curItem.children || []
+            curItem.children.push(newItem)
+        }
+
+        setGData(_.cloneDeep(gData))
+
+        // 处理新增节点的逻辑
+        setModalVisible(false);
+    };
+
+    const generateData = (_level: number, _preKey?: React.Key, _tns?: DataNode[]) => {
+        const preKey = _preKey || '0';
+        const tns = _tns || defaultData;
+
+        const children = [];
+        for (let i = 0; i < x; i++) {
+            const key = `${preKey}-${i}`;
+            tns.push({
+                title: <div onClick={() => setCurrentKey(key)}>
+                    {key}
+                    <Dropdown
+                        menu={{
+                            items
+                        }}
+                    >
+                        <Space>
+                            <PlusOutlined/>
+                        </Space>
+                    </Dropdown>
+                </div>, key
+            });
+            if (i < y) {
+                children.push(key);
+            }
+        }
+        if (_level < 0) {
+            return tns;
+        }
+        const level = _level - 1;
+        children.forEach((key, index) => {
+            tns[index].children = [];
+            return generateData(level, key, tns[index].children);
+        });
+    };
+    // generateData(z);
+
     return (
-        <div style={{
-            width: 200,
-        }}>
+        <div className={cls}>
             <Tree
                 className="draggable-tree"
-                defaultExpandedKeys={expandedKeys}
+                defaultExpandAll
                 draggable
                 blockNode
                 onDragEnter={onDragEnter}
                 onDrop={onDrop}
                 treeData={gData}
             />
+            <Modal title={modalInfo.title} open={modalVisible} onOk={handleOk} onCancel={handleCancel}>
+                {
+                    modalInfo.type !== 'delete' ? <Form form={form} onFinish={onFinish}>
+                        <Form.Item name="nodeName" label="名称" rules={[{required: true, message: '请输入名称'}]}>
+                            <Input placeholder="请输入节点名称"/>
+                        </Form.Item>
+                        <Form.Item name="nodeType" label="类型" rules={[{required: true, message: '请选择类型'}]}>
+                            <Select placeholder="请选择节点类型">
+                                <Option value="image">图片</Option>
+                                <Option value="text">文字</Option>
+                                <Option value="rectangle">矩形</Option>
+                                <Option value="heart">心形</Option>
+                                <Option value="hexagon">等边六边形</Option>
+                            </Select>
+                        </Form.Item>
+                    </Form> : <span>确认删除？</span>
+                }
+            </Modal>
         </div>
     );
 };

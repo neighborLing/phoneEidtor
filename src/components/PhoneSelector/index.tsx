@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Select} from 'antd';
 import './index.less';
 import {useSelector} from 'react-redux';
+import Editor from "../Editor";
 
 const {Option} = Select;
 const baseClassName = 'phone-selector';
@@ -19,8 +20,7 @@ const emptyPhone = {
 }
 
 const Index = () => {
-    const phoneTypes = useSelector((state: any) => state.phones);
-    console.log(phoneTypes)
+    const { phones: phoneTypes } = useSelector((state: any) => state.phones);
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(phoneTypes[0] || emptyPhone);
     const [sizeScale, setSizeScale] = useState<number>(75);
 
@@ -34,9 +34,8 @@ const Index = () => {
     };
 
     const getSelectedPhoneSize = () => {
-        const scale = sizeScale / 100;
-        const width = selectedPhone.width * scale;
-        const height = selectedPhone.height * scale;
+        const width = selectedPhone.width;
+        const height = selectedPhone.height;
         return {width, height};
     };
 
@@ -58,12 +57,14 @@ const Index = () => {
             </Select>
             <div
                 style={{
-                    width: getSelectedPhoneSize().width,
-                    height: getSelectedPhoneSize().height,
+                    width: getSelectedPhoneSize().width / 3,
+                    height: getSelectedPhoneSize().height / 3,
                     backgroundColor: '#ccc',
                     marginTop: 10,
                 }}
-            />
+            >
+                <Editor />
+            </div>
         </div>
     );
 };
