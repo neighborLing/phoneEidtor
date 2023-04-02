@@ -22,16 +22,12 @@ const emptyPhone = {
 const Index = () => {
     const { phones: phoneTypes } = useSelector((state: any) => state.phones);
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(phoneTypes[0] || emptyPhone);
-    const [sizeScale, setSizeScale] = useState<number>(75);
 
     const handlePhoneChange = (value: string) => {
         const phone = phoneTypes.find((p) => p.name === value) || phoneTypes[0] || emptyPhone;
         setSelectedPhone(phone);
     };
 
-    const handleSizeScaleChange = (value: number) => {
-        setSizeScale(value);
-    };
 
     const getSelectedPhoneSize = () => {
         const width = selectedPhone.width;
@@ -47,13 +43,6 @@ const Index = () => {
                         {phone.name}
                     </Option>
                 ))}
-            </Select>
-            <Select style={{width: 100, marginLeft: 10}} defaultValue={sizeScale} onChange={handleSizeScaleChange}>
-                <Option value={50}>50%</Option>
-                <Option value={75}>75%</Option>
-                <Option value={100}>100%</Option>
-                <Option value={125}>125%</Option>
-                <Option value={150}>150%</Option>
             </Select>
             <div
                 style={{

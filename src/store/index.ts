@@ -12,15 +12,35 @@ interface IPhonesState {
     phones: IPhone[],
 }
 
-interface ITreeNode {
+export interface ITreeNode {
     title: string,
     key: string,
-    children: ITree[],
+    children: ITreeNode[],
+    zIndex?: number,
 }
 
+export interface ITemplate {
+    name: string
+    tree: ITreeNode[]
+    id: number
+}
 
 interface ITree {
     tree: ITreeNode[],
+    treeTemplates?: ITemplate[],
+}
+
+function addZIndex(treeData: ITreeNode[], parentZIndex: number = 0) {
+    let index = 1;
+    for (const node of treeData) {
+        node.zIndex = index + parentZIndex;
+        index++;
+        if (node.children && node.children.length > 0) {
+            addZIndex(node.children, node.zIndex * 10 + 1);
+        }
+    }
+
+    return treeData;
 }
 
 const initialPhonesState: IPhonesState = {
@@ -43,17 +63,26 @@ function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
 }
 
 const initialTreeState: ITree = {
-    tree: window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : [],
+    tree: addZIndex(window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : []),
+    treeTemplates: window.localStorage.getItem('layoutTreeTemplates') ? JSON.parse(window.localStorage.getItem('layoutTreeTemplates') as string) : [],
 }
 
 function treeReducer(state: ITree = initialTreeState, action: any) {
     switch (action.type) {
         case 'updateLayoutTree':
             const tree = action.payload;
-            console.log('tree -udpate')
             window.localStorage.setItem('layoutTree', JSON.stringify(tree));
+
             return {
-                tree: action.payload,
+                ...state,
+                tree: addZIndex(action.payload),
+            }
+        case 'updateLayoutTreeTemplates':
+            const treeTemplates = action.payload;
+            window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
+            return {
+                ...state,
+                treeTemplates: action.payload,
             }
         default:
             return state
@@ -75,7 +104,7 @@ const initialPositionState: IContentBoxState = {
         left: 0,
         top: 0,
         remote: 0,
-        background: ''
+        background: '#333333'
     }
 }
 

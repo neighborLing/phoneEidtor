@@ -9,6 +9,9 @@ import _ from 'lodash';
 import './index.less';
 import {useSelector} from 'react-redux';
 import {findParentNode, findCurrentNode} from '../../utils/tree';
+import ImageUploader from "../ImageUploader";
+import {IImageInfo} from "../ImageUploader";
+import {IPosition} from '../../store/index.d';
 
 const cls = 'layout-tree'
 
@@ -31,6 +34,7 @@ const LayoutTree: React.FC = () => {
         type: ''
     });
     const [currentKey, setCurrentKey] = useState('');
+    const [imageInfos, setImageInfos] = useState<IImageInfo[]>([]);
 
     useEffect(() => {
         const treeData = formatToTreeData(gData)
@@ -40,16 +44,25 @@ const LayoutTree: React.FC = () => {
         })
     }, [gData])
 
+    const handleTreeNodeClick = (key: string) => {
+        setCurrentKey(key)
+        store.dispatch({
+            type: 'setContentBoxKey',
+            payload: key
+        })
+    }
+
     function initGData() {
         if (gData.length) return;
         if (tree.length) {
             const gData = formatToTreeNode(tree)
+            console.log('gData', gData)
             return setGData(gData)
         }
         const now = Date.now()
         const key = `root-${now}`
         const curItem: DataNode = {
-            title: <div onClick={() => setCurrentKey(key)}>
+            title: <div onClick={() => handleTreeNodeClick(key)}>
                 根节点
                 <Dropdown
                     menu={{
@@ -113,7 +126,7 @@ const LayoutTree: React.FC = () => {
     const formatToTreeNode = (data: DataNode[]) => {
         return data.map(item => {
             // @ts-ignore
-            const title = <div onClick={() => setCurrentKey(item.key as string)}>
+            const title = <div onClick={() => handleTreeNodeClick(item.key as string)}>
                 {item.title}
                 <Dropdown
                     menu={{
@@ -243,22 +256,19 @@ const LayoutTree: React.FC = () => {
         setModalVisible(false);
     };
 
-
-    const onFinish = (values: any) => {
-        const {type} = modalInfo
-        const {nodeType, nodeName} = values
-        const now = Date.now()
-        const key = `${nodeType}-${now}`
-        const position = {
-            width: 100,
-            height: 100,
-            left: 100,
-            top: 100,
-            remote: 0,
-            background: ''
-        }
-        const newItem = {
-            title: <div onClick={() => setCurrentKey(key)}>
+    const createNewItem = ({
+                               nodeName,
+                               key,
+                               nodeType,
+                               position,
+                           }: {
+        nodeName: string,
+        key: string,
+        nodeType: string,
+        position: IPosition,
+    }) => {
+        return {
+            title: <div onClick={() => handleTreeNodeClick(key)}>
                 {nodeName}
                 <Dropdown
                     menu={{
@@ -271,11 +281,66 @@ const LayoutTree: React.FC = () => {
                 </Dropdown>
             </div>, key, children: [], nodeType, position
         }
+    }
+
+    const handleRectangleType = (values: any) => {
+        const {nodeType, nodeName} = values
+        const now = Date.now()
+        const key = `${nodeType}-${now}`
+        const position = {
+            width: 100,
+            height: 100,
+            left: 0,
+            top: 0,
+            remote: 0,
+            background: '#333333'
+        }
+        const newItem = createNewItem({nodeName, key, nodeType, position})
+
+        return [newItem]
+    }
+
+    const handleImageType = (values: any) => {
+        const newItems = imageInfos.map((item, index) => {
+            const {nodeType} = values
+            const now = Date.now()
+            const key = `${nodeType}-${now}-${index}`
+            const position = {
+                width: 100,
+                height: Math.floor(item.height / item.width * 100),
+                // 原有图片的宽高比
+                ratio: item.height / item.width,
+                left: 0,
+                top: 0,
+                remote: 0,
+                background: `url("${item.url}") no-repeat center center / cover`
+            }
+            return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
+        })
+
+        return newItems
+    }
+
+
+    const onFinish = (values: any) => {
+        const {nodeType} = values
+        const {type} = modalInfo
+        const newItems = []
+
+        switch (nodeType) {
+            case 'rectangle':
+                newItems.push(...handleRectangleType(values))
+                break
+            case 'image':
+                newItems.push(...handleImageType(values))
+                break
+        }
+
         if (type === 'add') {
             //     根据id获取其父节点
             const parentNode = findParentNode(gData, currentKey)
             if (parentNode) {
-                parentNode?.children?.push(newItem)
+                parentNode?.children?.push(...newItems)
             }
         } else {
             const curItem = findCurrentNode(gData, currentKey)
@@ -283,7 +348,7 @@ const LayoutTree: React.FC = () => {
                 return message.info('没找到')
             }
             curItem.children = curItem.children || []
-            curItem.children.push(newItem)
+            curItem.children = [...newItems, ...curItem.children]
         }
 
         setGData(_.cloneDeep(gData))
@@ -300,7 +365,7 @@ const LayoutTree: React.FC = () => {
         for (let i = 0; i < x; i++) {
             const key = `${preKey}-${i}`;
             tns.push({
-                title: <div onClick={() => setCurrentKey(key)}>
+                title: <div onClick={() => handleTreeNodeClick(key)}>
                     {key}
                     <Dropdown
                         menu={{
@@ -328,12 +393,16 @@ const LayoutTree: React.FC = () => {
     };
     // generateData(z);
 
+    const handleImageUpload = (imageInfos: IImageInfo[]) => {
+        setImageInfos(imageInfos)
+    }
+
     return (
         <div className={cls}>
+            {/*draggable*/}
             <Tree
                 className="draggable-tree"
                 defaultExpandAll
-                draggable
                 blockNode
                 onDragEnter={onDragEnter}
                 onDrop={onDrop}
@@ -342,17 +411,25 @@ const LayoutTree: React.FC = () => {
             <Modal title={modalInfo.title} open={modalVisible} onOk={handleOk} onCancel={handleCancel}>
                 {
                     modalInfo.type !== 'delete' ? <Form form={form} onFinish={onFinish}>
-                        <Form.Item name="nodeName" label="名称" rules={[{required: true, message: '请输入名称'}]}>
-                            <Input placeholder="请输入节点名称"/>
-                        </Form.Item>
                         <Form.Item name="nodeType" label="类型" rules={[{required: true, message: '请选择类型'}]}>
                             <Select placeholder="请选择节点类型">
                                 <Option value="image">图片</Option>
-                                <Option value="text">文字</Option>
                                 <Option value="rectangle">矩形</Option>
-                                <Option value="heart">心形</Option>
-                                <Option value="hexagon">等边六边形</Option>
+                                {/*<Option value="text">文字</Option>*/}
+                                {/*<Option value="heart">心形</Option>*/}
+                                {/*<Option value="hexagon">等边六边形</Option>*/}
                             </Select>
+                        </Form.Item>
+                        <Form.Item noStyle
+                                   shouldUpdate={(prevValues, curValues) => prevValues.nodeType !== curValues.nodeType}>
+                            {({getFieldValue}) => getFieldValue('nodeType') === 'image' ?
+                                <Form.Item name="image" label="图片" rules={[{required: true, message: '请上传图片'}]}>
+                                    <ImageUploader onChange={handleImageUpload}/>
+                                </Form.Item> :
+                                <Form.Item name="nodeName" label="名称"
+                                           rules={[{required: true, message: '请输入名称'}]}>
+                                    <Input placeholder="请输入节点名称"/>
+                                </Form.Item>}
                         </Form.Item>
                     </Form> : <span>确认删除？</span>
                 }
