@@ -1,4 +1,4 @@
-import {Tree, Modal, Form, Input, Select, message} from 'antd';
+import {Tree, Modal, Form, Input, Select, message, Button} from 'antd';
 import type {DataNode, TreeProps} from 'antd/es/tree';
 import React, {useState, useEffect, ReactElement} from 'react';
 import {PlusOutlined} from '@ant-design/icons';
@@ -20,6 +20,13 @@ const y = 2;
 const z = 1;
 const defaultData: DataNode[] = [];
 const {Option} = Select
+
+
+interface ITreeNode extends DataNode {
+    position?: IPosition
+    nodeType: string
+    children?: ITreeNode[]
+}
 
 const LayoutTree: React.FC = () => {
     const {tree} = useSelector((state: any) => state.trees);
@@ -52,18 +59,12 @@ const LayoutTree: React.FC = () => {
         })
     }
 
-    function initGData() {
-        if (gData.length) return;
-        if (tree.length) {
-            const gData = formatToTreeNode(tree)
-            console.log('gData', gData)
-            return setGData(gData)
-        }
+    function createNewTree() {
         const now = Date.now()
         const key = `root-${now}`
-        const curItem: DataNode = {
+        const curItem: ITreeNode = {
             title: <div onClick={() => handleTreeNodeClick(key)}>
-                根节点
+                图层
                 <Dropdown
                     menu={{
                         items
@@ -73,12 +74,44 @@ const LayoutTree: React.FC = () => {
                         <PlusOutlined/>
                     </Space>
                 </Dropdown>
-            </div>, key, children: []
+            </div>, key, children: [{
+                title: <div onClick={() => handleTreeNodeClick(key)}>
+                    背景图
+                    <Dropdown
+                        menu={{
+                            items
+                        }}
+                    >
+                        <Space>
+                            <PlusOutlined/>
+                        </Space>
+                    </Dropdown>
+                </div>, key: `background`, children: [],
+                nodeType: 'rectangle',
+                position: {
+                    width: '100%',
+                    height: '100%',
+                    left: 0,
+                    top: 0,
+                    remote: 0,
+                    background: '#333333'
+                }
+            }]
         }
         const data = [
             curItem
         ]
         setGData(data)
+    }
+
+    function initGData() {
+        if (gData.length) return;
+        if (tree.length) {
+            const gData = formatToTreeNode(tree)
+            console.log('gData', gData)
+            return setGData(gData)
+        }
+        createNewTree()
     }
 
     useEffect(() => {
@@ -313,7 +346,7 @@ const LayoutTree: React.FC = () => {
                 left: 0,
                 top: 0,
                 remote: 0,
-                background: `url("${item.url}") no-repeat center center / cover`
+                background: `url("${item.url}")`
             }
             return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
         })
@@ -400,6 +433,9 @@ const LayoutTree: React.FC = () => {
     return (
         <div className={cls}>
             {/*draggable*/}
+            <Button type="primary" onClick={createNewTree} style={{
+                marginBottom: '10px'
+            }}>新增</Button>
             <Tree
                 className="draggable-tree"
                 defaultExpandAll

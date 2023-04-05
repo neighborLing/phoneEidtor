@@ -6,6 +6,8 @@ import {useSelector} from "react-redux";
 import store from "../../store/index";
 import {findCurrentNode} from "../../utils/tree";
 import _, {isNumber} from 'lodash';
+import { SketchPicker } from 'react-color';
+
 
 const MyForm: React.FC = () => {
     const [form] = Form.useForm();
@@ -21,7 +23,9 @@ const MyForm: React.FC = () => {
         form.setFieldsValue(position);
     }, [contentBoxKey])
 
-    const onValuesChange = (values: IPosition) => {
+    const onValuesChange = (values: {
+        [K in keyof IPosition]?: IPosition[K]
+    }) => {
         const { position } = store.getState().contentBox;
         const valueKeys = Object.keys(values);
         if (valueKeys.length === 1 && ['width', 'height'].includes(valueKeys[0]) && nodeType === 'image') {
@@ -33,10 +37,10 @@ const MyForm: React.FC = () => {
             if (field === 'width') {
                 // 根据宽高比ratio计算高度
                 // @ts-ignore
-                newHeight = (1 / +ratio) * newWidth;
+                newHeight = +ratio * newWidth;
             } else {
                 // @ts-ignore
-                newWidth = +ratio * newHeight;
+                newWidth = newHeight / +ratio;
             }
 
             const payload = {
@@ -107,7 +111,16 @@ const MyForm: React.FC = () => {
             </Form.Item>
 
             <Form.Item label="背景设置" name="background">
-                <Input />
+                {/*<Input />*/}
+                <SketchPicker color={ form.getFieldValue('background') }  onChangeComplete={(color: {
+                    hex: string;
+                }) => onValuesChange({
+                    background: color.hex
+                })} />
+            </Form.Item>
+
+            <Form.Item label="高宽比" name="ratio" hidden>
+                <Input readOnly />
             </Form.Item>
 
             <Form.Item>

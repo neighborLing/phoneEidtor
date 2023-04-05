@@ -5,6 +5,5 @@ export interface IPosition {
     top: number;
     remote: number;
     background: string;
-
-    ratio: number;
+    ratio?: number;
 }

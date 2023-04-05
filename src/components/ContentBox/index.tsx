@@ -20,16 +20,19 @@ function initPosition(position: IPosition | undefined) {
     return {width, height, left, top, remote, background, ratio};
 }
 
+let mouseEnterPosition = {
+    x: 0,
+    y: 0,
+    beforeLeft: 0,
+    beforeTop: 0,
+}
+
 const ContentBox = (props: IProps) => {
     const boxRef = useRef<HTMLDivElement>(null);
     const {children, nodeType, position, boxKey: key, zIndex = 1} = props;
     const defaultPosition = initPosition(position)
     const [curPosition, setCurrentPosition] = React.useState<IPosition>(defaultPosition);
     const {contentBoxKey, position: boxPosition} = useSelector(state => state.contentBox);
-    const [mouseEnterPosition, setMouseEnterPosition] = React.useState({
-        x: 0,
-        y: 0
-    });
 
     const setContentBoxKey = (e) => {
         e.stopPropagation()
@@ -72,10 +75,18 @@ const ContentBox = (props: IProps) => {
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
         if (boxRef.current) {
-            setMouseEnterPosition({
-                x: e.clientX - boxRef.current.offsetLeft,
-                y: e.clientY - boxRef.current.offsetTop
-            });
+            // 记录鼠标按下时的位置
+            mouseEnterPosition = {
+                x: e.clientX,
+                y: e.clientY,
+                beforeLeft: boxPosition.left,
+                beforeTop: boxPosition.top,
+                // beforeLeft: boxPosition.left,
+                // beforeTop: boxPosition.top,
+                // x: e.clientX - boxRef.current.offsetLeft,
+                // y: e.clientY - boxRef.current.offsetTop
+            }
+            console.log('mouse down', e.clientX, e.clientY)
         }
     };
 
@@ -83,11 +94,9 @@ const ContentBox = (props: IProps) => {
         e.stopPropagation();
         if (contentBoxKey !== key) return
         if (boxRef.current) {
-            // e.clientX 表示鼠标相对于浏览器窗口的x坐标
-            // boxRect.left 表示box相对于浏览器窗口的x坐标
-            // boxRect.width / 2 表示box的宽度的一半
-            const newX = e.clientX - mouseEnterPosition.x;
-            const newY = e.clientY - mouseEnterPosition.y;
+            // 鼠标在屏幕中的位置可以使用
+            const newX = +mouseEnterPosition.beforeLeft + e.clientX - +mouseEnterPosition.x;
+            const newY = +mouseEnterPosition.beforeTop + e.clientY - +mouseEnterPosition.y;
             store.dispatch({
                 type: 'setPosition',
                 payload: {...boxPosition, left: newX, top: newY},
@@ -103,13 +112,16 @@ const ContentBox = (props: IProps) => {
     };
     // onMouseDown={handleMouseDown}
     return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : ''].join(' ')}
+                onMouseDown={handleMouseDown}
                 onClick={setContentBoxKey} style={{
-        width: `${/[^0-9]/.test(curPosition.width + '') ? curPosition.width : curPosition.width + 'px'}`,
-        height: `${/[^0-9]/.test(curPosition.height + '') ? curPosition.height : curPosition.height + 'px'}`,
-        left: `${/[^0-9]/.test(curPosition.left + '') ? curPosition.left : curPosition.left + 'px'}`,
-        top: `${/[^0-9]/.test(curPosition.top + '') ? curPosition.top : curPosition.top + 'px'}`,
+        width: `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : curPosition.width + 'px'}`,
+        height: `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : curPosition.height + 'px'}`,
+        left: `${/[^0-9\.-]/.test(curPosition.left + '') ? curPosition.left : curPosition.left + 'px'}`,
+        top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : curPosition.top + 'px'}`,
         transform: `rotate(${curPosition.remote}deg)`,
         background: curPosition.background,
+        backgroundSize: '100% 100%',
+        // transition: 'all 0.05s',
         zIndex
     }}>
         <div>

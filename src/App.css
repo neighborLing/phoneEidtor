@@ -2,3 +2,6 @@
 body {
   padding: 50px;
 }
+image {
+  user-select: none;
+}

@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import { Button } from "antd";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export interface IImageInfo {
     name: string;
@@ -25,46 +25,47 @@ const ImageUploader: React.FC<Props> = ({ onChange }) => {
 
     useEffect(() => {
         handleUpload();
-    }, [files])
+    }, [files]);
 
-    const handleUpload = () => {
-        const reader = new FileReader();
+    const handleUpload = async () => {
         const imageInfos: IImageInfo[] = [];
-        const readFile = (index: number) => {
-            if (index >= files.length) {
-                onChange(imageInfos)
-                return;
-            }
-            const file = files[index];
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const result = reader.result;
-                if (typeof result === 'string') {
-                    // 获取图片的宽高
-                    const img = new Image();
-                    img.src = result;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                // 上传文件
+                const res = await axios.post('http://localhost:3000/upload', formData);
+                console.log('res', res);
+                const url = `http://localhost:3000${res.data}`;
+                // 获取图片宽高
+                const img = new Image();
+                img.src = url;
+                await new Promise((resolve, reject) => {
                     img.onload = () => {
                         imageInfos.push({
                             name: file.name,
-                            url: result,
+                            url,
                             width: img.width,
-                            height: img.height
+                            height: img.height,
                         });
-                    }
-
-                }
-                readFile(index + 1);
-            };
-        };
-        readFile(0);
+                        resolve(null);
+                    };
+                    img.onerror = (err) => {
+                        console.error(err);
+                        reject(err);
+                    };
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        onChange(imageInfos);
     };
 
     return (
-        <div style={{
-            display: 'flex',
-        }}>
+        <div style={{ display: 'flex' }}>
             <input type="file" onChange={handleFileChange} multiple />
-            {/*<Button onClick={handleUpload}>上传</Button>*/}
         </div>
     );
 };
