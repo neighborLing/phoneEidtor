@@ -23,7 +23,9 @@ function App() {
     }
     const onTodo = () => {}
     return (
+
         <Provider store={store}>
+            <DataControl onExportImage={onTodo} onImportTemplate={onTodo} onExportTemplate={onTodo} />
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -32,7 +34,6 @@ function App() {
                 <PhoneSelector />
                 <ControlBar />
             </div>
-            <DataControl onExportImage={onTodo} onImportTemplate={onTodo} onExportTemplate={onTodo} />
         </Provider>
     );
 }

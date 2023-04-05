@@ -3,6 +3,8 @@ import './index.less';
 import store from '../../store/index'
 import {useSelector} from "react-redux";
 import {IPosition} from '../../store/index.d';
+import {findCurrentNode} from "../../utils/tree";
+import _ from "lodash";
 
 const cls = 'content-box';
 
@@ -33,6 +35,7 @@ const ContentBox = (props: IProps) => {
     const defaultPosition = initPosition(position)
     const [curPosition, setCurrentPosition] = React.useState<IPosition>(defaultPosition);
     const {contentBoxKey, position: boxPosition} = useSelector(state => state.contentBox);
+    const {tree} = useSelector((state) => state.trees);
 
     const setContentBoxKey = (e) => {
         e.stopPropagation()
@@ -105,10 +108,12 @@ const ContentBox = (props: IProps) => {
             // 鼠标在屏幕中的位置可以使用
             const newX = +mouseEnterPosition.beforeLeft + e.clientX - +mouseEnterPosition.x;
             const newY = +mouseEnterPosition.beforeTop + e.clientY - +mouseEnterPosition.y;
+            const newPosition = {...boxPosition, left: newX, top: newY}
             store.dispatch({
                 type: 'setPosition',
-                payload: {...boxPosition, left: newX, top: newY},
+                payload: newPosition,
             });
+            updateTree(newPosition)
         }
     }, [boxPosition])
 
@@ -122,11 +127,23 @@ const ContentBox = (props: IProps) => {
         e.stopPropagation();
         if (contentBoxKey !== key || !boxRef.current) return
         const { width, height } = boxRef.current.getBoundingClientRect();
+        const newPosition = {...boxPosition, width, height }
         store.dispatch({
             type: 'setPosition',
-            payload: {...boxPosition, width, height },
+            payload: newPosition,
         });
         document.removeEventListener('mouseup', handleResizeMouseUp);
+        updateTree(newPosition)
+    }
+
+    const updateTree = (position: IPosition) => {
+        const currentNode = findCurrentNode(tree, contentBoxKey);
+        // @ts-ignore
+        currentNode.position = position
+        store.dispatch({
+            type: 'updateLayoutTree',
+            payload: _.cloneDeep(tree)
+        })
     }
     // onMouseDown={handleMouseDown}
     return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : ''].join(' ')}
@@ -140,7 +157,7 @@ const ContentBox = (props: IProps) => {
         background: curPosition.background,
         backgroundSize: '100% 100%',
         // transition: 'all 0.05s',
-        resize: 'both',
+        resize: contentBoxKey === key ? 'both' : 'none',
         zIndex
     }}>
         <div>

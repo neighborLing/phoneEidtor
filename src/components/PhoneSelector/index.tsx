@@ -37,10 +37,10 @@ const Index = () => {
 
     return (
         <div className={baseClassName}>
-            <Select style={{width: 200}} defaultValue={(phoneTypes[0] || emptyPhone).name} onChange={handlePhoneChange}>
+            <Select style={{width: 300}} defaultValue={(phoneTypes[0] || emptyPhone).name} onChange={handlePhoneChange}>
                 {phoneTypes.map((phone: PhoneType) => (
                     <Option key={phone.name} value={phone.name}>
-                        {phone.name}
+                        {phone.name} | {phone.width}x{phone.height}
                     </Option>
                 ))}
             </Select>

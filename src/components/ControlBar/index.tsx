@@ -52,7 +52,6 @@ const MyForm: React.FC = () => {
                 type: 'setPosition',
                 payload
             });
-            return;
         } else {
             const payload = {
                 ...position,
@@ -63,6 +62,8 @@ const MyForm: React.FC = () => {
                 payload
             });
         }
+
+        // submitChange()
     };
 
     const nodeType = useMemo(() => {

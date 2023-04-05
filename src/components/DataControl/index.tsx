@@ -79,14 +79,16 @@ const MyComponent: React.FC<Props> = ({
 
     return (
         <div className={baseClassName}>
-            <LocalFileUploader label='上传手机类型' afterUpload={(text) => dispatch({
-                type: 'updatePhones',
-                payload: phonesTextHandler(text),
+            <LocalFileUploader label='上传手机类型' afterUpload={(text) => {
+                message.success('上传成功')
+                dispatch({
+                    type: 'updatePhones',
+                    payload: phonesTextHandler(text),
                 })
+            }
             }/>
             {/*<div className={`${baseClassName}-button`}><Button onClick={onImportTemplate}>导入模板</Button></div>*/}
             <div className={`${baseClassName}-button`}><Button onClick={() => setModalVisible(true)}>保存模板</Button></div>
-            <div className={`${baseClassName}-button`}><Button onClick={onExportImage}>导出图片</Button></div>
             <Select style={{
                 width: '200px',
                 marginLeft: '10px',
@@ -97,6 +99,7 @@ const MyComponent: React.FC<Props> = ({
                     </Option>
                 ))}
             </Select>
+            <div className={`${baseClassName}-button`}><Button onClick={onExportImage}>导出图片</Button></div>
             <Modal
                 title="保存模板"
                 visible={modalVisible}

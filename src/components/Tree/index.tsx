@@ -31,7 +31,7 @@ interface ITreeNode extends DataNode {
 const LayoutTree: React.FC = () => {
     const {tree} = useSelector((state: any) => state.trees);
     const [gData, setGData] = useState<DataNode[]>(defaultData);
-    const [expandedKeys, setExpandedKeys] = useState(['0-0', '0-0-0', '0-0-0-0']);
+    const [expandedKeys, setExpandedKeys] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalInfo, setModalInfo] = useState<{
         title: string
@@ -43,12 +43,26 @@ const LayoutTree: React.FC = () => {
     const [currentKey, setCurrentKey] = useState('');
     const [imageInfos, setImageInfos] = useState<IImageInfo[]>([]);
 
+    // 获取所有节点的key值
+    function getAllkeys(data: DataNode[]) {
+        let keys: string[] = [];
+        data.forEach(item => {
+            keys.push(item.key as string)
+            if (item.children) {
+                keys = keys.concat(getAllkeys(item.children))
+            }
+        })
+        return keys;
+    }
+
     useEffect(() => {
         const treeData = formatToTreeData(gData)
         store.dispatch({
             type: 'updateLayoutTree',
             payload: treeData
         })
+        // @ts-ignore
+        setExpandedKeys(getAllkeys(treeData))
     }, [gData])
 
     const handleTreeNodeClick = (key: string) => {
@@ -75,7 +89,7 @@ const LayoutTree: React.FC = () => {
                     </Space>
                 </Dropdown>
             </div>, key, children: [{
-                title: <div onClick={() => handleTreeNodeClick(key)}>
+                title: <div onClick={() => handleTreeNodeClick('background')}>
                     背景图
                     <Dropdown
                         menu={{
@@ -260,7 +274,9 @@ const LayoutTree: React.FC = () => {
     const [form] = Form.useForm();
 
     const showModal = (type: 'add' | 'addChild' | 'delete') => {
-        form.resetFields()
+        form.setFieldsValue({
+            nodeType: 'image',
+        })
         setModalVisible(true);
         setModalInfo({
             ...modalInfo,
@@ -317,7 +333,7 @@ const LayoutTree: React.FC = () => {
     }
 
     const handleRectangleType = (values: any) => {
-        const {nodeType, nodeName} = values
+        const {nodeType} = values
         const now = Date.now()
         const key = `${nodeType}-${now}`
         const position = {
@@ -328,6 +344,7 @@ const LayoutTree: React.FC = () => {
             remote: 0,
             background: '#333333'
         }
+        const nodeName = '矩形'
         const newItem = createNewItem({nodeName, key, nodeType, position})
 
         return [newItem]
@@ -435,10 +452,11 @@ const LayoutTree: React.FC = () => {
             {/*draggable*/}
             <Button type="primary" onClick={createNewTree} style={{
                 marginBottom: '10px'
-            }}>新增</Button>
+            }}>重置</Button>
             <Tree
                 className="draggable-tree"
-                defaultExpandAll
+                defaultExpandAll={true}
+                expandedKeys={expandedKeys}
                 blockNode
                 onDragEnter={onDragEnter}
                 onDrop={onDrop}
@@ -461,11 +479,7 @@ const LayoutTree: React.FC = () => {
                             {({getFieldValue}) => getFieldValue('nodeType') === 'image' ?
                                 <Form.Item name="image" label="图片" rules={[{required: true, message: '请上传图片'}]}>
                                     <ImageUploader onChange={handleImageUpload}/>
-                                </Form.Item> :
-                                <Form.Item name="nodeName" label="名称"
-                                           rules={[{required: true, message: '请输入名称'}]}>
-                                    <Input placeholder="请输入节点名称"/>
-                                </Form.Item>}
+                                </Form.Item> : null}
                         </Form.Item>
                     </Form> : <span>确认删除？</span>
                 }
