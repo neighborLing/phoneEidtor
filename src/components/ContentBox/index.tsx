@@ -61,32 +61,40 @@ const ContentBox = (props: IProps) => {
         const positionData = contentBoxKey === key ? boxPosition : defaultPosition;
 
         setCurrentPosition(initPosition(positionData))
-
-
     }, [contentBoxKey, boxPosition])
 
     const selected = useMemo(() => {
         return key === contentBoxKey;
     }, [contentBoxKey])
 
+    const handleMove = (e) => {
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    const handleResize = (e) => {
+        document.addEventListener('mouseup', handleResizeMouseUp);
+    }
+
     const handleMouseDown = (e) => {
         e.stopPropagation();
         if (contentBoxKey !== key) return
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
+
         if (boxRef.current) {
+            // 判断是否为右下角的拖拽点
+            const {left, top, width, height} = boxRef.current.getBoundingClientRect();
+            if (e.clientX > width + left - 10 && e.clientY > height + top - 10) {
+                handleResize(e)
+            } else {
+                handleMove(e)
+            }
             // 记录鼠标按下时的位置
             mouseEnterPosition = {
                 x: e.clientX,
                 y: e.clientY,
                 beforeLeft: boxPosition.left,
                 beforeTop: boxPosition.top,
-                // beforeLeft: boxPosition.left,
-                // beforeTop: boxPosition.top,
-                // x: e.clientX - boxRef.current.offsetLeft,
-                // y: e.clientY - boxRef.current.offsetTop
             }
-            console.log('mouse down', e.clientX, e.clientY)
         }
     };
 
@@ -110,6 +118,16 @@ const ContentBox = (props: IProps) => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
     };
+    const handleResizeMouseUp = (e) => {
+        e.stopPropagation();
+        if (contentBoxKey !== key || !boxRef.current) return
+        const { width, height } = boxRef.current.getBoundingClientRect();
+        store.dispatch({
+            type: 'setPosition',
+            payload: {...boxPosition, width, height },
+        });
+        document.removeEventListener('mouseup', handleResizeMouseUp);
+    }
     // onMouseDown={handleMouseDown}
     return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : ''].join(' ')}
                 onMouseDown={handleMouseDown}
@@ -122,6 +140,7 @@ const ContentBox = (props: IProps) => {
         background: curPosition.background,
         backgroundSize: '100% 100%',
         // transition: 'all 0.05s',
+        resize: 'both',
         zIndex
     }}>
         <div>
