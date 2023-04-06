@@ -63,7 +63,9 @@ const MyForm: React.FC = () => {
             });
         }
 
-        // submitChange()
+        setTimeout(() => {
+            submitChange()
+        }, 200)
     };
 
     const nodeType = useMemo(() => {
@@ -82,10 +84,10 @@ const MyForm: React.FC = () => {
                 type: 'updateLayoutTree',
                 payload: _.cloneDeep(tree)
             })
-            store.dispatch({
-                type: 'setContentBoxKey',
-                payload: ''
-            })
+            // store.dispatch({
+            //     type: 'setContentBoxKey',
+            //     payload: ''
+            // })
         }
     }
 
@@ -115,9 +117,9 @@ const MyForm: React.FC = () => {
                 {/*<Input />*/}
                 <SketchPicker color={ form.getFieldValue('background') }  onChangeComplete={(color: {
                     hex: string;
-                }) => onValuesChange({
+                }) => nodeType !== 'image' ? onValuesChange({
                     background: color.hex
-                })} />
+                }) : null} />
             </Form.Item>
 
             <Form.Item label="高宽比" name="ratio" hidden>
@@ -125,9 +127,9 @@ const MyForm: React.FC = () => {
             </Form.Item>
 
             <Form.Item>
-                <Button type="primary" htmlType="submit" onClick={submitChange}>
-                    提交
-                </Button>
+                {/*<Button type="primary" htmlType="submit" onClick={submitChange}>*/}
+                {/*    提交*/}
+                {/*</Button>*/}
             </Form.Item>
         </Form>
     );

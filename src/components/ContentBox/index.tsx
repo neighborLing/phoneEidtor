@@ -16,6 +16,13 @@ interface IProps {
     zIndex?: number
 }
 
+// @ts-ignore
+const getAngle = (center, point) => {
+    const x = point.x - center.x;
+    const y = point.y - center.y;
+    return Math.atan2(y, x) * 180 / Math.PI + 90;
+}
+
 function initPosition(position: IPosition | undefined) {
     const {width = 100, height = 100, left = 0, top = 0, remote = 0, background = '', ratio = 1} = position || {};
 
@@ -127,7 +134,7 @@ const ContentBox = (props: IProps) => {
         e.stopPropagation();
         if (contentBoxKey !== key || !boxRef.current) return
         const { width, height } = boxRef.current.getBoundingClientRect();
-        const newPosition = {...boxPosition, width, height }
+        const newPosition = {...boxPosition, width, height: nodeType === 'image777' ? width * boxPosition.ratio : height }
         store.dispatch({
             type: 'setPosition',
             payload: newPosition,
@@ -145,6 +152,46 @@ const ContentBox = (props: IProps) => {
             payload: _.cloneDeep(tree)
         })
     }
+
+    const handleRotateMouseMove = (e) => {
+        e.stopPropagation()
+    //     获取盒子中点
+        if (contentBoxKey !== key || !boxRef.current) return
+        const {left, top, width, height} = boxRef.current.getBoundingClientRect();
+        const centerPoint = {
+            x: left + width / 2,
+            y: top + height / 2
+        }
+    //     获取鼠标位置
+        const mousePoint = {
+            x: e.clientX,
+            y: e.clientY
+        }
+    //     获取鼠标与盒子中点的角度
+        const angle = getAngle(centerPoint, mousePoint);
+
+        const newPosition = {...boxPosition, remote: angle }
+        store.dispatch({
+            type: 'setPosition',
+            payload: newPosition,
+        });
+        updateTree(newPosition)
+
+        console.log(angle)
+    }
+    const handleRotateMouseUp = (e) => {
+        e.stopPropagation();
+        if (contentBoxKey !== key || !boxRef.current) return
+        document.removeEventListener('mousemove', handleRotateMouseMove);
+        document.removeEventListener('mouseup', handleRotateMouseUp);
+    }
+
+    const handleRotateMouseDown = (e) => {
+        e.stopPropagation();
+        if (contentBoxKey !== key || !boxRef.current) return
+        document.addEventListener('mousemove', handleRotateMouseMove);
+        document.addEventListener('mouseup', handleRotateMouseUp);
+    }
     // onMouseDown={handleMouseDown}
     return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : ''].join(' ')}
                 onMouseDown={handleMouseDown}
@@ -157,9 +204,12 @@ const ContentBox = (props: IProps) => {
         background: curPosition.background,
         backgroundSize: '100% 100%',
         // transition: 'all 0.05s',
-        resize: contentBoxKey === key ? 'both' : 'none',
+        resize: contentBoxKey === key && curPosition.remote === 0 ? 'both' : 'none',
         zIndex
     }}>
+        {
+            selected ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null
+        }
         <div>
             {
                 children.map((child: IProps) => <ContentBox {...child} boxKey={child.key}/>)

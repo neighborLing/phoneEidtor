@@ -3,7 +3,7 @@ import {Button,Input,Modal,message,Select} from "antd";
 import "./index.less";
 import LocalFileUploader from "../LocalFileUploader";
 import {useDispatch, useSelector} from 'react-redux';
-import { IPhone, ITreeNode, ITemplate } from '../../store';
+import store, { IPhone, ITreeNode, ITemplate } from '../../store';
 import _ from 'lodash';
 import { toPng } from 'html-to-image';
 const { Option } = Select;
@@ -67,7 +67,32 @@ const MyComponent: React.FC<Props> = ({
     }
 
     const onExportImage = () => {
-        const editor = document.getElementById('phoneEditor');
+        store.dispatch({
+            type: 'setContentBoxKey',
+            payload: ''
+        })
+        const editor = document.getElementById('phoneEditor')!;
+        // 把所有链接都换成base64
+        const imgs = editor.getElementsByTagName('img');
+        for (let i = 0; i < imgs.length; i++) {
+            const img = imgs[i];
+            const src = img.getAttribute('src');
+            if (src && src.startsWith('http')) {
+                img.setAttribute('src', 'https://img.alicdn.com/tfs/TB1yQJ2QpXXXXX5XpXXXXXXXXXX-200-200.png');
+            }
+
+            const image = new Image();
+            image.src = src;
+            image.onload = function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.width;
+                canvas.height = image.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+                const dataURL = canvas.toDataURL('image/png');
+                img.setAttribute('src', dataURL);
+            }
+        }
         if (!editor) return;
         toPng(editor).then(function (dataUrl) {
             const downloadLink = document.createElement('a');
