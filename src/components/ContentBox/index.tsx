@@ -202,7 +202,6 @@ const ContentBox = (props: IProps) => {
         top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : curPosition.top + 'px'}`,
         transform: `rotate(${curPosition.remote}deg)`,
         background: curPosition.background,
-        backgroundSize: '100% 100%',
         // transition: 'all 0.05s',
         resize: contentBoxKey === key && curPosition.remote === 0 ? 'both' : 'none',
         zIndex

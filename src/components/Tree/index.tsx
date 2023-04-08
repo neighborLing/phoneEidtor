@@ -42,6 +42,7 @@ const LayoutTree: React.FC = () => {
     });
     const [currentKey, setCurrentKey] = useState('');
     const [imageInfos, setImageInfos] = useState<IImageInfo[]>([]);
+    const { contentBoxKey } = useSelector((state: any) => state.contentBox);
 
     // 获取所有节点的key值
     function getAllkeys(data: DataNode[]) {
@@ -54,6 +55,10 @@ const LayoutTree: React.FC = () => {
         })
         return keys;
     }
+
+    useEffect(() => {
+        setCurrentKey(contentBoxKey)
+    }, [contentBoxKey])
 
     useEffect(() => {
         const treeData = formatToTreeData(gData)
@@ -108,7 +113,7 @@ const LayoutTree: React.FC = () => {
                     left: 0,
                     top: 0,
                     remote: 0,
-                    background: '#333333'
+                    background: '#131313'
                 }
             }]
         }
@@ -278,6 +283,8 @@ const LayoutTree: React.FC = () => {
             nodeType: 'image',
         })
         setModalVisible(true);
+        form.resetFields();
+        form.setFieldValue('nodeType', 'image')
         setModalInfo({
             ...modalInfo,
             title: type.includes('add') ? (type === 'add' ? '新增同级' : '新增子节点') : '删除节点',
@@ -363,7 +370,7 @@ const LayoutTree: React.FC = () => {
                 left: 0,
                 top: 0,
                 remote: 0,
-                background: `url("${item.url}")`
+                background: `url("${item.url}") 0% 0% / 100% 100%`
             }
             return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
         })
@@ -461,6 +468,7 @@ const LayoutTree: React.FC = () => {
                 onDragEnter={onDragEnter}
                 onDrop={onDrop}
                 treeData={gData}
+                selectedKeys={[currentKey]}
             />
             <Modal title={modalInfo.title} open={modalVisible} onOk={handleOk} onCancel={handleCancel}>
                 {

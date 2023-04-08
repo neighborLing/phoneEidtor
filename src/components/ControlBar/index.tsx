@@ -1,12 +1,13 @@
 import React, {useEffect, useMemo} from "react";
-import { Form, Input, Button } from "antd";
+import {Form, Input, Button} from "antd";
 import './index.less'
-import { IPosition } from "../../store/index.d";
+import {IPosition} from "../../store/index.d";
 import {useSelector} from "react-redux";
 import store from "../../store/index";
 import {findCurrentNode} from "../../utils/tree";
 import _, {isNumber} from 'lodash';
-import { SketchPicker } from 'react-color';
+import {SketchPicker} from 'react-color';
+import ImageUploader from "../ImageUploader";
 
 
 const MyForm: React.FC = () => {
@@ -26,11 +27,11 @@ const MyForm: React.FC = () => {
     const onValuesChange = (values: {
         [K in keyof IPosition]?: IPosition[K]
     }) => {
-        const { position } = store.getState().contentBox;
+        const {position} = store.getState().contentBox;
         const valueKeys = Object.keys(values);
         if (valueKeys.length === 1 && ['width', 'height'].includes(valueKeys[0]) && nodeType === 'image') {
             const field = valueKeys[0];
-            const { width, height, ratio } = position;
+            const {width, height, ratio} = position;
             let newWidth = +(values.width || width);
             let newHeight = +(values.height || height);
             if (!isNumber(newWidth) || !isNumber(newHeight) || !newHeight || !newWidth) return;
@@ -91,48 +92,95 @@ const MyForm: React.FC = () => {
         }
     }
 
+    const handleImageUpload = (val) => {
+        console.log(val)
+        const file = val[0];
+        const { width, height, url } = file;
+        const ratio = height / width;
+
+        onValuesChange({
+            ratio: ratio
+        })
+        onValuesChange({
+            background: `url("${url}") 0% 0% / 100% 100%`
+        })
+        onValuesChange({
+            height: ratio * form.getFieldValue('width')
+        })
+
+    }
+
     return (
-        <Form form={form} onValuesChange={onValuesChange}>
-            <Form.Item label="宽度" name="width">
-                <Input />
-            </Form.Item>
+        <div className="control-bar">
+            {
 
-            <Form.Item label="高度" name="height">
-                <Input />
-            </Form.Item>
+                    nodeType === 'image' ? <Form form={form} onValuesChange={onValuesChange}>
+                    <Form.Item label="宽度" name="width">
+                        <Input/>
+                    </Form.Item>
 
-            <Form.Item label="左边距" name="left">
-                <Input />
-            </Form.Item>
+                    <Form.Item label="高度" name="height">
+                        <Input/>
+                    </Form.Item>
 
-            <Form.Item label="上边距" name="top">
-                <Input />
-            </Form.Item>
+                    <Form.Item label="左边距" name="left">
+                        <Input/>
+                    </Form.Item>
 
-            <Form.Item label="旋转角度" name="remote">
-                <Input type="number" />
-            </Form.Item>
+                    <Form.Item label="上边距" name="top">
+                        <Input/>
+                    </Form.Item>
 
-            <Form.Item label="背景设置" name="background">
-                {/*<Input />*/}
-                <SketchPicker color={ form.getFieldValue('background') }  onChangeComplete={(color: {
-                    hex: string;
-                }) => nodeType !== 'image' ? onValuesChange({
-                    background: color.hex
-                }) : null} />
-            </Form.Item>
+                    <Form.Item label="旋转角度" name="remote">
+                        <Input type="number"/>
+                    </Form.Item>
 
-            <Form.Item label="高宽比" name="ratio" hidden>
-                <Input readOnly />
-            </Form.Item>
+                    <Form.Item label="图片选择" name="background">
+                        <Button>
+                            <ImageUploader onChange={handleImageUpload} multiple={false}/>
+                        </Button>
+                    </Form.Item>
 
-            <Form.Item>
-                {/*<Button type="primary" htmlType="submit" onClick={submitChange}>*/}
-                {/*    提交*/}
-                {/*</Button>*/}
-            </Form.Item>
-        </Form>
+                    <Form.Item label="高宽比" name="ratio" hidden>
+                        <Input readOnly/>
+                    </Form.Item>
+                </Form> : <Form form={form} onValuesChange={onValuesChange}>
+                    <Form.Item label="宽度" name="width">
+                        <Input/>
+                    </Form.Item>
+
+                    <Form.Item label="高度" name="height">
+                        <Input/>
+                    </Form.Item>
+
+                    <Form.Item label="左边距" name="left">
+                        <Input/>
+                    </Form.Item>
+
+                    <Form.Item label="上边距" name="top">
+                        <Input/>
+                    </Form.Item>
+
+                    <Form.Item label="旋转角度" name="remote">
+                        <Input type="number"/>
+                    </Form.Item>
+
+                    <Form.Item label="背景颜色">
+                        <SketchPicker color={form.getFieldValue('background')} onChangeComplete={(color: {
+                            hex: string;
+                        }) => onValuesChange({
+                            background: color.hex
+                        })}/>
+                    </Form.Item>
+
+                    <Form.Item label="高宽比" name="ratio" hidden>
+                        <Input readOnly/>
+                    </Form.Item>
+                </Form>
+            }
+        </div>
     );
-};
+}
+    ;
 
-export default MyForm;
+    export default MyForm;

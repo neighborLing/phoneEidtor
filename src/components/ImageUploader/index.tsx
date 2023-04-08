@@ -10,15 +10,16 @@ export interface IImageInfo {
 
 interface Props {
     onChange: (imageInfos: IImageInfo[]) => void;
+    multiple?: boolean;
 }
 
-const ImageUploader: React.FC<Props> = ({ onChange }) => {
+const ImageUploader: React.FC<Props> = ({ onChange, multiple = true }) => {
     const [files, setFiles] = useState<File[]>([]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = event.target.files;
         if (selectedFiles && selectedFiles.length > 0) {
-            const newFiles = [...files, ...Array.from(selectedFiles)];
+            const newFiles = multiple ? [...files, ...Array.from(selectedFiles)] : [...Array.from(selectedFiles)];
             setFiles(newFiles);
         }
     };
@@ -65,7 +66,7 @@ const ImageUploader: React.FC<Props> = ({ onChange }) => {
 
     return (
         <div style={{ display: 'flex' }}>
-            <input type="file" onChange={handleFileChange} multiple />
+            <input type="file" onChange={handleFileChange} multiple={multiple} />
         </div>
     );
 };
