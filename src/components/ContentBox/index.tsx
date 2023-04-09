@@ -14,6 +14,7 @@ interface IProps {
     position?: IPosition
     boxKey: string
     zIndex?: number
+    forExport?: boolean
 }
 
 // @ts-ignore
@@ -24,9 +25,9 @@ const getAngle = (center, point) => {
 }
 
 function initPosition(position: IPosition | undefined) {
-    const {width = 100, height = 100, left = 0, top = 0, remote = 0, background = '', ratio = 1} = position || {};
+    const {width = 100, height = 100, left = 0, top = 0, remote = 0, background = '', ratio = 1, content = '', fontFamily = 'ChannelSlanted2', fontSize = 14, color = '#fff', lineHeight = 1, url = '', base64 = ''} = position || {};
 
-    return {width, height, left, top, remote, background, ratio};
+    return {width, height, left, top, remote, background, ratio, content, fontFamily, fontSize, color, lineHeight, url, base64}
 }
 
 let mouseEnterPosition = {
@@ -38,7 +39,7 @@ let mouseEnterPosition = {
 
 const ContentBox = (props: IProps) => {
     const boxRef = useRef<HTMLDivElement>(null);
-    const {children, nodeType, position, boxKey: key, zIndex = 1} = props;
+    const {children, nodeType, position, boxKey: key, zIndex = 1, forExport = false} = props;
     const defaultPosition = initPosition(position)
     const [curPosition, setCurrentPosition] = React.useState<IPosition>(defaultPosition);
     const {contentBoxKey, position: boxPosition} = useSelector(state => state.contentBox);
@@ -133,8 +134,12 @@ const ContentBox = (props: IProps) => {
     const handleResizeMouseUp = (e) => {
         e.stopPropagation();
         if (contentBoxKey !== key || !boxRef.current) return
-        const { width, height } = boxRef.current.getBoundingClientRect();
-        const newPosition = {...boxPosition, width, height: nodeType === 'image777' ? width * boxPosition.ratio : height }
+        const {width, height} = boxRef.current.getBoundingClientRect();
+        const newPosition = {
+            ...boxPosition,
+            width,
+            height: nodeType === 'image777' ? width * boxPosition.ratio : height
+        }
         store.dispatch({
             type: 'setPosition',
             payload: newPosition,
@@ -144,6 +149,8 @@ const ContentBox = (props: IProps) => {
     }
 
     const updateTree = (position: IPosition) => {
+        // 从store中获取tree
+        const tree = _.cloneDeep(store.getState().trees.tree);
         const currentNode = findCurrentNode(tree, contentBoxKey);
         // @ts-ignore
         currentNode.position = position
@@ -155,22 +162,22 @@ const ContentBox = (props: IProps) => {
 
     const handleRotateMouseMove = (e) => {
         e.stopPropagation()
-    //     获取盒子中点
+        //     获取盒子中点
         if (contentBoxKey !== key || !boxRef.current) return
         const {left, top, width, height} = boxRef.current.getBoundingClientRect();
         const centerPoint = {
             x: left + width / 2,
             y: top + height / 2
         }
-    //     获取鼠标位置
+        //     获取鼠标位置
         const mousePoint = {
             x: e.clientX,
             y: e.clientY
         }
-    //     获取鼠标与盒子中点的角度
+        //     获取鼠标与盒子中点的角度
         const angle = getAngle(centerPoint, mousePoint);
 
-        const newPosition = {...boxPosition, remote: angle }
+        const newPosition = {...boxPosition, remote: angle}
         store.dispatch({
             type: 'setPosition',
             payload: newPosition,
@@ -192,28 +199,98 @@ const ContentBox = (props: IProps) => {
         document.addEventListener('mousemove', handleRotateMouseMove);
         document.addEventListener('mouseup', handleRotateMouseUp);
     }
+    const isImageBackground = children && children.length && children[0].nodeType === 'image'
+    const imageBackground = isImageBackground ? `${
+        forExport ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%').replace(children[0]?.position?.url || '', children[0]?.position?.base64 || '') : 
+            children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%')
+    }` : 'none'
+    console.log('imageBackground', imageBackground)
+
+    const rate = forExport ? 3 : 1;
+
+    const child = children.map((child: IProps) => <ContentBox {...child} boxKey={child.key} forExport={forExport}/>)
+    const width = `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : +curPosition.width * rate + 'px'}`;
+    const height = `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : +curPosition.height * rate + 'px'}`;
+    let curBackground = isImageBackground ? imageBackground : curPosition.background;
+    curBackground = forExport ? curBackground.replace(curPosition?.url || '', curPosition?.base64 || '') : curBackground;
+    if (forExport && isImageBackground) {
+        console.log('curPosition', curPosition)
+        console.log('curBackground', curBackground)
+    }
     // onMouseDown={handleMouseDown}
-    return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : ''].join(' ')}
+    return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : '', isImageBackground ? 'b-filter' : ''].join(' ')}
                 onMouseDown={handleMouseDown}
                 onClick={setContentBoxKey} style={{
-        width: `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : curPosition.width + 'px'}`,
-        height: `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : curPosition.height + 'px'}`,
-        left: `${/[^0-9\.-]/.test(curPosition.left + '') ? curPosition.left : curPosition.left + 'px'}`,
-        top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : curPosition.top + 'px'}`,
+        width,
+        height,
+        left: `${/[^0-9\.-]/.test(curPosition.left + '') ? curPosition.left : curPosition.left * rate + 'px'}`,
+        top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : curPosition.top * rate + 'px'}`,
         transform: `rotate(${curPosition.remote}deg)`,
-        background: curPosition.background,
+        background: !['triangle', 'lozenge', 'heart'].includes(nodeType) ? curBackground : '',
         // transition: 'all 0.05s',
-        resize: contentBoxKey === key && curPosition.remote === 0 ? 'both' : 'none',
-        zIndex
+        resize: contentBoxKey === key && +curPosition.remote === 0 ? 'both' : 'none',
+        borderRadius: ['roundedRectangle', 'rotundity'].includes(nodeType) ? nodeType === 'roundedRectangle' ? (forExport ? '60px' : '20px') : '9999px' : '0px',
+        zIndex,
     }}>
         {
             selected ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null
         }
-        <div>
-            {
-                children.map((child: IProps) => <ContentBox {...child} boxKey={child.key}/>)
-            }
-        </div>
+        {
+            nodeType === 'triangle' ? (
+                <div className={['triangle', isImageBackground ? 'b-filter' : ''].join(' ')} style={{
+                    borderWidth: `0 ${width} ${height} 0`,
+                    borderColor: `transparent ${curPosition.background} ${curPosition.background} transparent`
+                }}>
+                    {
+                        child
+                    }
+                </div>
+            ) : null
+        }
+        {
+            nodeType === 'lozenge' ? (
+                <div className={['lozenge', isImageBackground ? 'b-filter' : ''].join(' ')} style={{
+                    width,
+                    height,
+                    background: curBackground,
+                }}>
+                    {
+                        child
+                    }
+                </div>
+            ) : null
+        }
+        {
+            nodeType === 'heart' ? (
+                <div className='heart' style={{
+                    width,
+                    height,
+                    background: curBackground,
+                }}>
+                    {
+                        child
+                    }
+                </div>
+            ) : null
+        }
+        {
+            !['triangle', 'lozenge', 'heart'].includes(nodeType) ? <div>
+                {
+                    child
+                }
+            </div> : null
+        }
+        {
+            <span style={{
+                whiteSpace: 'pre-wrap',
+                fontFamily: curPosition.fontFamily,
+                fontSize: curPosition.fontSize + 'px',
+                color: curPosition.color,
+                lineHeight: curPosition.lineHeight,
+                overflowWrap: 'break-word',
+                userSelect: 'none'
+            }}>{curPosition.content}</span>
+        }
     </div>;
 }
 

@@ -21,6 +21,7 @@ const MyComponent: React.FC<Props> = ({
     const [templateName, setTemplateName] = useState('');
     const { tree, treeTemplates } = useSelector((state: any) => state.trees);
     const inputRef = useRef(null);
+    const [selectedTemplate, setSelectedTemplate] = useState('');
     const dispatch = useDispatch();
     const phonesTextHandler = (text: string) => {
         const phones = text.split('\n');
@@ -38,7 +39,7 @@ const MyComponent: React.FC<Props> = ({
         }, [])
     }
     const onSaveTemplate = () => {
-
+        const tree = store.getState().trees.tree;
         if (!templateName) message.warning('请输入模板名称');
         if (inputRef.current) {
             treeTemplates.push({
@@ -46,7 +47,6 @@ const MyComponent: React.FC<Props> = ({
                 id: Date.now(),
                 tree,
             })
-
             dispatch({
               type: 'updateLayoutTreeTemplates',
                 payload: _.cloneDeep(treeTemplates)
@@ -57,12 +57,20 @@ const MyComponent: React.FC<Props> = ({
     }
 
     const selectTree = (value: string) => {
+        const cm = confirm('确定要覆盖当前布局吗？');
+        if (!cm) {
+            return setSelectedTemplate('');
+        }
         const selectedTree = treeTemplates.find((treeTemplate: ITemplate) => treeTemplate.name === value);
         if (selectedTree) {
             dispatch({
                 type: 'updateLayoutTree',
                 payload: _.cloneDeep(selectedTree.tree)
             })
+            setTimeout(() => {
+            //     页面刷新
+                window.location.reload();
+            }, 50)
         }
     }
 
@@ -117,7 +125,7 @@ const MyComponent: React.FC<Props> = ({
             <Select style={{
                 width: '200px',
                 marginLeft: '10px',
-            }} onChange={selectTree}>
+            }} onChange={selectTree} value={selectedTemplate}>
                 {treeTemplates.map((treeTemplate: ITemplate) => (
                     <Option key={treeTemplate.name} treeTemplate={treeTemplate.name}>
                         {treeTemplate.name}

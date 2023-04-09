@@ -1,6 +1,7 @@
 import {combineReducers, createStore} from 'redux';
-
+import {message} from 'antd';
 import {IPosition} from './index.d';
+import axios from "axios";
 
 export interface IPhone {
     name: string,
@@ -30,7 +31,7 @@ interface ITree {
     treeTemplates?: ITemplate[],
 }
 
-function addZIndex(treeData: ITreeNode[], parentZIndex: number = 0) {
+export function addZIndex(treeData: ITreeNode[], parentZIndex: number = 0) {
     let index = 1;
     for (const node of treeData) {
         node.zIndex = index + parentZIndex;
@@ -44,16 +45,21 @@ function addZIndex(treeData: ITreeNode[], parentZIndex: number = 0) {
 }
 
 const initialPhonesState: IPhonesState = {
-    phones: [{
-        name: 'iPhone XR',
-        width: 828,
-        height: 1729,
-    }],
+    phones: [],
 };
 
 function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
     switch (action.type) {
         case 'updatePhones':
+            axios.post('http://localhost:3000/files/phones/content', {
+                content: JSON.stringify(action.payload)
+            }).then(() => {
+                message.success('上传成功');
+            })
+            return {
+                phones: action.payload,
+            }
+        case 'updatePhones2':
             return {
                 phones: action.payload,
             }
@@ -65,6 +71,20 @@ function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
 const initialTreeState: ITree = {
     tree: addZIndex(window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : []),
     treeTemplates: window.localStorage.getItem('layoutTreeTemplates') ? JSON.parse(window.localStorage.getItem('layoutTreeTemplates') as string) : [],
+    // tree: [],
+    // treeTemplates: []
+}
+
+const removeBase64 = (tree: ITreeNode[]) => {
+    for (const node of tree) {
+        if (node.children && node.children.length > 0) {
+            removeBase64(node.children);
+        } else {
+            // @ts-ignore
+            delete node.position.base64;
+        }
+    }
+    return tree;
 }
 
 function treeReducer(state: ITree = initialTreeState, action: any) {
@@ -73,6 +93,17 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             const tree = action.payload;
             window.localStorage.setItem('layoutTree', JSON.stringify(tree));
 
+            axios.post('http://localhost:3000/files/tree/content', {
+                content: JSON.stringify(tree)
+            });
+
+            // debugger
+            return {
+                ...state,
+                tree: addZIndex(action.payload),
+            }
+        case 'updateLayoutTree2':
+            // debugger
             return {
                 ...state,
                 tree: addZIndex(action.payload),
@@ -80,9 +111,17 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
         case 'updateLayoutTreeTemplates':
             const treeTemplates = action.payload;
             window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
+            axios.post('http://localhost:3000/files/trees/content', {
+                content: JSON.stringify(treeTemplates)
+            });
             return {
                 ...state,
-                treeTemplates: action.payload,
+                treeTemplates: action.payload || [],
+            }
+        case 'updateLayoutTreeTemplates2':
+            return {
+                ...state,
+                treeTemplates: action.payload || [],
             }
         default:
             return state
@@ -104,7 +143,7 @@ const initialPositionState: IContentBoxState = {
         left: 0,
         top: 0,
         remote: 0,
-        background: '#333333'
+        background: '#1890ff'
     }
 }
 

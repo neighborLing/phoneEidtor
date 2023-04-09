@@ -21,6 +21,18 @@ const z = 1;
 const defaultData: DataNode[] = [];
 const {Option} = Select
 
+const shapeOptions = [
+    { key: 'image', value: '图片' },
+    { key: 'rectangle', value: '矩形' },
+    { key: 'roundedRectangle', value: '圆角矩形' },
+    { key: 'rotundity', value: '圆形' },
+    { key: 'lozenge', value: '菱形' },
+    { key: 'triangle', value: '三角形' },
+    { key: 'heart', value: '心形' },
+    { key: 'text', value: '文字' }
+];
+
+
 
 interface ITreeNode extends DataNode {
     position?: IPosition
@@ -70,6 +82,12 @@ const LayoutTree: React.FC = () => {
         setExpandedKeys(getAllkeys(treeData))
     }, [gData])
 
+    useEffect(() => {
+        console.log('tree change')
+        // setGData(tree)
+    }, [tree])
+
+
     const handleTreeNodeClick = (key: string) => {
         setCurrentKey(key)
         store.dispatch({
@@ -93,29 +111,31 @@ const LayoutTree: React.FC = () => {
                         <PlusOutlined/>
                     </Space>
                 </Dropdown>
-            </div>, key, children: [{
-                title: <div onClick={() => handleTreeNodeClick('background')}>
-                    背景图
-                    <Dropdown
-                        menu={{
-                            items
-                        }}
-                    >
-                        <Space>
-                            <PlusOutlined/>
-                        </Space>
-                    </Dropdown>
-                </div>, key: `background`, children: [],
-                nodeType: 'rectangle',
-                position: {
-                    width: '100%',
-                    height: '100%',
-                    left: 0,
-                    top: 0,
-                    remote: 0,
-                    background: '#131313'
-                }
-            }]
+            </div>, key, children: [
+            //     {
+            //     title: <div onClick={() => handleTreeNodeClick('background')}>
+            //         背景图
+            //         <Dropdown
+            //             menu={{
+            //                 items
+            //             }}
+            //         >
+            //             <Space>
+            //                 <PlusOutlined/>
+            //             </Space>
+            //         </Dropdown>
+            //     </div>, key: `background`, children: [],
+            //     nodeType: 'rectangle',
+            //     position: {
+            //         width: '100%',
+            //         height: '100%',
+            //         left: 0,
+            //         top: 0,
+            //         remote: 0,
+            //         background: '#131313'
+            //     }
+            // }
+            ]
         }
         const data = [
             curItem
@@ -140,14 +160,14 @@ const LayoutTree: React.FC = () => {
     const items: MenuProps['items'] = [
         {
             key: 'add-sibling',
-            label: '新增同级',
+            label: '新增图层',
             onClick: () => {
                 showModal('add');
             },
         },
         {
             key: 'add-node',
-            label: '新增子节点',
+            label: '新增子图层',
             onClick: () => {
                 showModal('addChild');
             },
@@ -349,9 +369,13 @@ const LayoutTree: React.FC = () => {
             left: 0,
             top: 0,
             remote: 0,
-            background: '#333333'
+            background: '#1890ff',
+            fontFamily: 'ChannelSlanted2',
+            fontSize: 14,
+            color: '#fff',
+            content: ''
         }
-        const nodeName = '矩形'
+        const nodeName = shapeOptions.find(i => i.key === nodeType)?.value || '未知'
         const newItem = createNewItem({nodeName, key, nodeType, position})
 
         return [newItem]
@@ -370,7 +394,9 @@ const LayoutTree: React.FC = () => {
                 left: 0,
                 top: 0,
                 remote: 0,
-                background: `url("${item.url}") 0% 0% / 100% 100%`
+                background: `url("${item.url}") 0% 0% / 100% 100%`,
+                url: item.url,
+                base64: item.base64,
             }
             return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
         })
@@ -385,11 +411,11 @@ const LayoutTree: React.FC = () => {
         const newItems = []
 
         switch (nodeType) {
-            case 'rectangle':
-                newItems.push(...handleRectangleType(values))
-                break
             case 'image':
                 newItems.push(...handleImageType(values))
+                break
+            default:
+                newItems.push(...handleRectangleType(values))
                 break
         }
 
@@ -454,10 +480,16 @@ const LayoutTree: React.FC = () => {
         setImageInfos(imageInfos)
     }
 
+    const resetTree = () => {
+        const cm = confirm('确认需要重置吗？')
+        if (!cm) return
+        createNewTree()
+    }
+
     return (
         <div className={cls}>
             {/*draggable*/}
-            <Button type="primary" onClick={createNewTree} style={{
+            <Button type="primary" onClick={resetTree} style={{
                 marginBottom: '10px'
             }}>重置</Button>
             <Tree
@@ -475,11 +507,9 @@ const LayoutTree: React.FC = () => {
                     modalInfo.type !== 'delete' ? <Form form={form} onFinish={onFinish}>
                         <Form.Item name="nodeType" label="类型" rules={[{required: true, message: '请选择类型'}]}>
                             <Select placeholder="请选择节点类型">
-                                <Option value="image">图片</Option>
-                                <Option value="rectangle">矩形</Option>
-                                {/*<Option value="text">文字</Option>*/}
-                                {/*<Option value="heart">心形</Option>*/}
-                                {/*<Option value="hexagon">等边六边形</Option>*/}
+                                {
+                                    shapeOptions.map(shape => <Option value={shape.key} key={shape.key}>{shape.value}</Option>)
+                                }
                             </Select>
                         </Form.Item>
                         <Form.Item noStyle

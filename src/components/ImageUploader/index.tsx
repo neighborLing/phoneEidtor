@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import {getBase64} from '../../utils';
 
 export interface IImageInfo {
     name: string;
     url: string;
     width: number;
     height: number;
+    base64: string;
 }
 
 interface Props {
@@ -42,13 +44,15 @@ const ImageUploader: React.FC<Props> = ({ onChange, multiple = true }) => {
                 // 获取图片宽高
                 const img = new Image();
                 img.src = url;
-                await new Promise((resolve, reject) => {
+                await new Promise(async (resolve, reject) => {
+                    const base64 = await getBase64(file);
                     img.onload = () => {
                         imageInfos.push({
                             name: file.name,
                             url,
                             width: img.width,
                             height: img.height,
+                            base64
                         });
                         resolve(null);
                     };

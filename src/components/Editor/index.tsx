@@ -4,7 +4,11 @@ import {useSelector} from "react-redux";
 import ContentBox from "../ContentBox";
 
 const cls = 'editor'
-const Editor = () => {
+interface IProps {
+    forExport?: boolean
+}
+const Editor = (props: IProps) => {
+    const { forExport = false } = props
     const { tree } = useSelector((state: any) => state.trees);
 
     const children = useMemo(() => {
@@ -14,9 +18,9 @@ const Editor = () => {
         return children
     }, [tree])
 
-    return <div className={cls} id='phoneEditor'>
+    return <div className={cls} id={forExport ? 'phoneEditor' : ''}>
         {
-            children.map((child: any) => <ContentBox {...child} boxKey={child.key} />)
+            children.map((child: any) => <ContentBox {...child} boxKey={child.key} forExport={forExport} />)
         }
     </div>
 }
