@@ -70,7 +70,7 @@ const MyComponent: React.FC<Props> = ({
             setTimeout(() => {
             //     页面刷新
                 window.location.reload();
-            }, 50)
+            }, 200)
         }
     }
 

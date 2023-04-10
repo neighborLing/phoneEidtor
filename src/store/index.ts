@@ -2,7 +2,7 @@ import {combineReducers, createStore} from 'redux';
 import {message} from 'antd';
 import {IPosition} from './index.d';
 import axios from "axios";
-import {act} from "react-dom/test-utils";
+import _ from 'lodash';
 
 export interface IPhone {
     name: string,
@@ -71,21 +71,23 @@ function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
 
 const initialTreeState: ITree = {
     tree: addZIndex(window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : []),
-    treeTemplates: window.localStorage.getItem('layoutTreeTemplates') ? JSON.parse(window.localStorage.getItem('layoutTreeTemplates') as string) : [],
+    treeTemplates: [],
     // tree: [],
     // treeTemplates: []
 }
 
 const removeBase64 = (tree: ITreeNode[]) => {
+// 所有节点的position的base64都去掉
     for (const node of tree) {
         if (node.children && node.children.length > 0) {
             removeBase64(node.children);
-        } else {
-            // @ts-ignore
+        }
+        if (node.position) {
             delete node.position.base64;
         }
     }
-    return tree;
+
+    return tree
 }
 
 function treeReducer(state: ITree = initialTreeState, action: any) {
@@ -94,9 +96,9 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             const tree = action.payload;
             window.localStorage.setItem('layoutTree', JSON.stringify(tree));
 
-            axios.post('http://localhost:3000/files/tree/content', {
-                content: JSON.stringify(tree)
-            });
+            // axios.post('http://localhost:3000/files/tree/content', {
+            //     content: JSON.stringify(tree)
+            // });
 
             // debugger
             return {
@@ -113,7 +115,12 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             const treeTemplates = action.payload;
             // window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
             axios.post('http://localhost:3000/files/trees/content', {
-                content: JSON.stringify(treeTemplates)
+                content: JSON.stringify(_.cloneDeep(treeTemplates).map(({
+                    name, tree
+                }) => ({
+                    name,
+                    tree: removeBase64(tree)
+                })))
             });
             return {
                 ...state,

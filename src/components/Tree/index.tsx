@@ -73,18 +73,7 @@ const LayoutTree: React.FC = () => {
     }, [contentBoxKey])
 
     useEffect(() => {
-        // const treeData = formatToTreeData(gData)
-        // store.dispatch({
-        //     type: 'updateLayoutTree',
-        //     payload: treeData
-        // })
-        // // @ts-ignore
-        // setExpandedKeys(getAllkeys(treeData))
-    }, [gData])
-
-    useEffect(() => {
-        console.log('tree change')
-        const gData = formatToTreeNode(tree)
+        const gData = formatToTreeNode(_.cloneDeep(tree))
         setGData(gData)
     }, [tree])
 
@@ -112,31 +101,7 @@ const LayoutTree: React.FC = () => {
                         <PlusOutlined/>
                     </Space>
                 </Dropdown>
-            </div>, key, children: [
-            //     {
-            //     title: <div onClick={() => handleTreeNodeClick('background')}>
-            //         背景图
-            //         <Dropdown
-            //             menu={{
-            //                 items
-            //             }}
-            //         >
-            //             <Space>
-            //                 <PlusOutlined/>
-            //             </Space>
-            //         </Dropdown>
-            //     </div>, key: `background`, children: [],
-            //     nodeType: 'rectangle',
-            //     position: {
-            //         width: '100%',
-            //         height: '100%',
-            //         left: 0,
-            //         top: 0,
-            //         remote: 0,
-            //         background: '#131313'
-            //     }
-            // }
-            ]
+            </div>, key, children: []
         }
         const data = [
             curItem

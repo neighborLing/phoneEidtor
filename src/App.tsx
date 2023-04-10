@@ -45,7 +45,7 @@ function App() {
     useEffect(() => {
         // fetchTree()
         fetchPhone()
-        // fetchTemplate()
+        fetchTemplate()
     }, [])
     return (
         <Provider store={store}>
