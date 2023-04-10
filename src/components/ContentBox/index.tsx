@@ -284,7 +284,8 @@ const ContentBox = (props: IProps) => {
             <span style={{
                 whiteSpace: 'pre-wrap',
                 fontFamily: curPosition.fontFamily,
-                fontSize: curPosition.fontSize + 'px',
+                // @ts-ignore
+                fontSize: forExport ? +curPosition.fontSize * 3 : curPosition.fontSize + 'px',
                 color: curPosition.color,
                 lineHeight: curPosition.lineHeight,
                 overflowWrap: 'break-word',

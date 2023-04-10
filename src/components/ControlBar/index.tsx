@@ -8,6 +8,7 @@ import {findCurrentNode} from "../../utils/tree";
 import _, {isNumber} from 'lodash';
 import {SketchPicker} from 'react-color';
 import ImageUploader from "../ImageUploader";
+import {getBase64} from "../../utils";
 
 const {Option} = Select;
 
@@ -41,7 +42,7 @@ const MyForm: React.FC = () => {
 
         const onValuesChange = (values: {
             [K in keyof IPosition]?: IPosition[K]
-        }) => {
+        }, submit = true) => {
             console.log(values)
             const {position} = store.getState().contentBox;
             const valueKeys = Object.keys(values);
@@ -80,7 +81,7 @@ const MyForm: React.FC = () => {
                 });
             }
 
-            setTimeout(() => {
+            submit && setTimeout(() => {
                 submitChange()
             }, 200)
         };
@@ -109,21 +110,31 @@ const MyForm: React.FC = () => {
             }
         }
 
-        const handleImageUpload = (val) => {
-            console.log(val)
+        const handleImageUpload = async (val) => {
+            console.log('va11', val)
             const file = val[0];
-            const {width, height, url} = file;
+            const {width, height, url, base64} = file;
             const ratio = height / width;
+            const payload = {
+                ratio: ratio,
+                background: `url("${url}") 0% 0% / 100% 100%`,
+                height: ratio * form.getFieldValue('width'),
+                url,
+                base64
+            }
+            console.log('payload', payload)
+            onValuesChange(payload)
 
-            onValuesChange({
-                ratio: ratio
-            })
-            onValuesChange({
-                background: `url("${url}") 0% 0% / 100% 100%`
-            })
-            onValuesChange({
-                height: ratio * form.getFieldValue('width')
-            })
+
+            // await new Promise(async (resolve, reject) => {
+            //     // @ts-ignore
+            //     const base64 = await getBase64(file);
+            //     onValuesChange({
+            //         // @ts-ignore
+            //         base64
+            //     })
+            //     resolve(base64)
+            // });
 
         }
 
@@ -177,6 +188,14 @@ const MyForm: React.FC = () => {
                         </Form.Item>
 
                         <Form.Item label="高宽比" name="ratio" hidden>
+                            <Input readOnly/>
+                        </Form.Item>
+
+                        <Form.Item label="url" name="url" hidden>
+                            <Input readOnly/>
+                        </Form.Item>
+
+                        <Form.Item label="base64" name="base64" hidden>
                             <Input readOnly/>
                         </Form.Item>
                     </Form> : <Form form={form} onValuesChange={onValuesChange}>

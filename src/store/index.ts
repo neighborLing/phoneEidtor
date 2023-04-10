@@ -2,6 +2,7 @@ import {combineReducers, createStore} from 'redux';
 import {message} from 'antd';
 import {IPosition} from './index.d';
 import axios from "axios";
+import {act} from "react-dom/test-utils";
 
 export interface IPhone {
     name: string,
@@ -110,7 +111,7 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             }
         case 'updateLayoutTreeTemplates':
             const treeTemplates = action.payload;
-            window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
+            // window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
             axios.post('http://localhost:3000/files/trees/content', {
                 content: JSON.stringify(treeTemplates)
             });
@@ -166,10 +167,32 @@ function contentBoxReducer(state: IContentBoxState = initialPositionState, actio
     }
 }
 
+const initialExportBoxState = {
+    showExportBox: false
+}
+
+function showExportBoxReducer(state = initialExportBoxState, action: any) {
+    switch (action.type) {
+        case 'showExportBox':
+            return {
+                ...state,
+                showExportBox: true
+            }
+        case 'hideExportBox':
+            return {
+                ...state,
+                showExportBox: false
+            }
+        default:
+            return state;
+    }
+}
+
 const rootReducer = combineReducers({
     phones: phoneReducer,
     trees: treeReducer,
     contentBox: contentBoxReducer,
+    exportBox: showExportBoxReducer
 });
 
 // 创建 store

@@ -21,6 +21,7 @@ const emptyPhone = {
 
 const Index = () => {
     const { phones: phoneTypes } = useSelector((state: any) => state.phones);
+    const { showExportBox } = useSelector((state: any) => state.exportBox);
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(phoneTypes[0] || emptyPhone);
     useEffect(() => {
         setSelectedPhone(phoneTypes[0] || emptyPhone);
@@ -59,22 +60,24 @@ const Index = () => {
                 >
                     <Editor />
                 </div>
-                {/*<div style={{*/}
-                {/*    width: '10px',*/}
-                {/*    height: '10px',*/}
-                {/*    // overflow: "hidden"*/}
-                {/*}}>*/}
-                {/*    <div*/}
-                {/*        style={{*/}
-                {/*            width: getSelectedPhoneSize().width,*/}
-                {/*            height: getSelectedPhoneSize().height,*/}
-                {/*            backgroundColor: '#ccc',*/}
-                {/*            marginTop: 10,*/}
-                {/*        }}*/}
-                {/*    >*/}
-                {/*        <Editor forExport={true} />*/}
-                {/*    </div>*/}
-                {/*</div>*/}
+                {
+                    showExportBox ? <div style={{
+                        width: '10px',
+                        height: '10px',
+                        overflow: "hidden"
+                    }}>
+                        <div
+                            style={{
+                                width: getSelectedPhoneSize().width,
+                                height: getSelectedPhoneSize().height,
+                                backgroundColor: '#ccc',
+                                marginTop: 10,
+                            }}
+                        >
+                            <Editor forExport={true} />
+                        </div>
+                    </div> : null
+                }
             </div>
         </div>
     );

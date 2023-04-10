@@ -73,18 +73,19 @@ const LayoutTree: React.FC = () => {
     }, [contentBoxKey])
 
     useEffect(() => {
-        const treeData = formatToTreeData(gData)
-        store.dispatch({
-            type: 'updateLayoutTree',
-            payload: treeData
-        })
-        // @ts-ignore
-        setExpandedKeys(getAllkeys(treeData))
+        // const treeData = formatToTreeData(gData)
+        // store.dispatch({
+        //     type: 'updateLayoutTree',
+        //     payload: treeData
+        // })
+        // // @ts-ignore
+        // setExpandedKeys(getAllkeys(treeData))
     }, [gData])
 
     useEffect(() => {
         console.log('tree change')
-        // setGData(tree)
+        const gData = formatToTreeNode(tree)
+        setGData(gData)
     }, [tree])
 
 
@@ -141,6 +142,13 @@ const LayoutTree: React.FC = () => {
             curItem
         ]
         setGData(data)
+        const treeData = formatToTreeData(_.cloneDeep(data))
+        store.dispatch({
+            type: 'updateLayoutTree',
+            payload: treeData
+        })
+        // @ts-ignore
+        setExpandedKeys(getAllkeys(treeData))
     }
 
     function initGData() {
@@ -321,6 +329,13 @@ const LayoutTree: React.FC = () => {
                 parentNode.children = parentNode.children?.filter(item => item.key !== currentKey)
 
                 setGData(_.cloneDeep(gData))
+                const treeData = formatToTreeData(_.cloneDeep(gData))
+                store.dispatch({
+                    type: 'updateLayoutTree',
+                    payload: treeData
+                })
+                // @ts-ignore
+                setExpandedKeys(getAllkeys(treeData))
             }
             setModalVisible(false);
         } else {
@@ -435,6 +450,13 @@ const LayoutTree: React.FC = () => {
         }
 
         setGData(_.cloneDeep(gData))
+        const treeData = formatToTreeData(_.cloneDeep(gData))
+        store.dispatch({
+            type: 'updateLayoutTree',
+            payload: treeData
+        })
+        // @ts-ignore
+        setExpandedKeys(getAllkeys(treeData))
 
         // 处理新增节点的逻辑
         setModalVisible(false);
