@@ -23,11 +23,11 @@ function App() {
         console.log(info)
     }
     const fetchTree = async () => {
-        const tree = await axios.get('http://localhost:3000/tree/content');
+        const tree = await axios.get('http://47.108.29.87:3000/tree/content');
         console.log('tree', tree)
     }
     const fetchPhone = async () => {
-        const phones = await axios.get('http://localhost:3000/phones/content');
+        const phones = await axios.get('http://47.108.29.87:3000/phones/content');
         console.log('phones', phones)
         store.dispatch({
             type: 'updatePhones2',
@@ -35,7 +35,7 @@ function App() {
         })
     }
     const fetchTemplate = async () => {
-        const data = await axios.get('http://localhost:3000/trees/content');
+        const data = await axios.get('http://47.108.29.87:3000/trees/content');
         store.dispatch({
             type: 'updateLayoutTreeTemplates2',
             payload: data.data

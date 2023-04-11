@@ -113,6 +113,7 @@ const MyForm: React.FC = () => {
         const handleImageUpload = async (val) => {
             console.log('va11', val)
             const file = val[0];
+            if (!file) return;
             const {width, height, url, base64} = file;
             const ratio = height / width;
             const payload = {

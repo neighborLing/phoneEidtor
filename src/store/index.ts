@@ -52,7 +52,7 @@ const initialPhonesState: IPhonesState = {
 function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
     switch (action.type) {
         case 'updatePhones':
-            axios.post('http://localhost:3000/files/phones/content', {
+            axios.post('http://47.108.29.87:3000/files/phones/content', {
                 content: JSON.stringify(action.payload)
             }).then(() => {
                 message.success('上传成功');
@@ -96,7 +96,7 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             const tree = action.payload;
             window.localStorage.setItem('layoutTree', JSON.stringify(tree));
 
-            // axios.post('http://localhost:3000/files/tree/content', {
+            // axios.post('http://47.108.29.87:3000/files/tree/content', {
             //     content: JSON.stringify(tree)
             // });
 
@@ -114,7 +114,7 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
         case 'updateLayoutTreeTemplates':
             const treeTemplates = action.payload;
             // window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
-            axios.post('http://localhost:3000/files/trees/content', {
+            axios.post('http://47.108.29.87:3000/files/trees/content', {
                 content: JSON.stringify(_.cloneDeep(treeTemplates).map(({
                     name, tree
                 }) => ({

@@ -23,33 +23,6 @@
   z-index: 99999999;
 }
 
-.heart {
-  width: 100px;
-  height: 90px;
-  position: relative;
-}
-
-.heart:before,
-.heart:after {
-  content: "";
-  position: absolute;
-  left: 50px;
-  top: 0;
-  width: 50px;
-  height: 80px;
-  background: red;
-  border-radius: 50px 50px 0 0;
-  transform: rotate(-45deg);
-  transform-origin: 0 100%;
-}
-
-.heart:after {
-  left: 0;
-  transform: rotate(45deg);
-  transform-origin: 100% 100%;
-}
-
-
 // 三角形
 .triangle {
   width: 0;
@@ -68,14 +41,7 @@
   //width: 100px;
   //height: 100px;
   //background-color: #ff4d4d;
-  -webkit-clip-path: polygon(50% 0%,
-  68% 25%,
-  82% 48%,
-  74% 60%,
-  50% 90%,
-  26% 60%,
-  18% 48%,
-  32% 25%);
+  clip-path: url(#myPath);
   overflow: hidden;
 }
 

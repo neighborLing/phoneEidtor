@@ -25,9 +25,39 @@ const getAngle = (center, point) => {
 }
 
 function initPosition(position: IPosition | undefined) {
-    const {width = 100, height = 100, left = 0, top = 0, remote = 0, background = '', ratio = 1, content = '', fontFamily = 'ChannelSlanted2', fontSize = 14, color = '#fff', lineHeight = 1, url = '', base64 = ''} = position || {};
+    const {
+        width = 100,
+        height = 100,
+        left = 0,
+        top = 0,
+        remote = 0,
+        background = '',
+        ratio = 1,
+        content = '',
+        fontFamily = 'ChannelSlanted2',
+        fontSize = 14,
+        color = '#fff',
+        lineHeight = 1,
+        url = '',
+        base64 = ''
+    } = position || {};
 
-    return {width, height, left, top, remote, background, ratio, content, fontFamily, fontSize, color, lineHeight, url, base64}
+    return {
+        width,
+        height,
+        left,
+        top,
+        remote,
+        background,
+        ratio,
+        content,
+        fontFamily,
+        fontSize,
+        color,
+        lineHeight,
+        url,
+        base64
+    }
 }
 
 let mouseEnterPosition = {
@@ -201,7 +231,7 @@ const ContentBox = (props: IProps) => {
     }
     const isImageBackground = children && children.length && children[0].nodeType === 'image'
     const imageBackground = isImageBackground ? `${
-        forExport ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%').replace(children[0]?.position?.url || '', children[0]?.position?.base64 || '') : 
+        forExport ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%').replace(children[0]?.position?.url || '', children[0]?.position?.base64 || '') :
             children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%')
     }` : 'none'
     console.log('imageBackground', imageBackground)
@@ -218,7 +248,8 @@ const ContentBox = (props: IProps) => {
         console.log('curBackground', curBackground)
     }
     // onMouseDown={handleMouseDown}
-    return <div ref={boxRef} className={[cls, selected ? `${cls}-selected` : '', isImageBackground ? 'b-filter' : ''].join(' ')}
+    return <div ref={boxRef}
+                className={[cls, selected ? `${cls}-selected` : '', isImageBackground ? 'b-filter' : ''].join(' ')}
                 onMouseDown={handleMouseDown}
                 onClick={setContentBoxKey} style={{
         width,
@@ -292,6 +323,15 @@ const ContentBox = (props: IProps) => {
                 userSelect: 'none'
             }}>{curPosition.content}</span>
         }
+        <svg>
+            <clipPath id="myPath" clipPathUnits="objectBoundingBox">
+                <path d="M0.5,1
+      C 0.5,1,0,0.7,0,0.3
+      A 0.25,0.25,1,1,1,0.5,0.3
+      A 0.25,0.25,1,1,1,1,0.3
+      C 1,0.7,0.5,1,0.5,1 Z"/>
+            </clipPath>
+        </svg>
     </div>;
 }
 
