@@ -92,30 +92,11 @@ const LayoutTree: React.FC = () => {
         const key = `root-${now}`
         // @ts-ignore
         const curItem: ITreeNode = {
-            title: <div style={{
-                width: '100%',
-                height: '100%',
-                background: '#333333',
-            }}>
-                图层
-                <Dropdown
-                    menu={{
-                        items: _items
-                    }}
-                >
-                    <Space>
-                        <PlusOutlined/>
-                    </Space>
-                </Dropdown>
-            </div>, key, children: []
+            title: '图层', key, children: []
         }
-        const data = [
+        const treeData = [
             curItem
         ]
-        setGData(data)
-        // @ts-ignore
-        handleTreeChange(data)
-        const treeData = formatToTreeData(_.cloneDeep(data))
         store.dispatch({
             type: 'updateLayoutTree',
             payload: treeData
@@ -175,11 +156,11 @@ const LayoutTree: React.FC = () => {
     }
 
     const handleLockLayout = (key: string) => {
-        const curItem = findCurrentNode(gData, key)
+        const curItem = findCurrentNode(tree, key)
         if (curItem) {
             // @ts-ignore
             curItem.isLock = !curItem.isLock
-            const treeData = formatToTreeData(_.cloneDeep(gData))
+            const treeData = _.cloneDeep(tree)
             store.dispatch({
                 type: 'updateLayoutTree',
                 payload: treeData
@@ -249,12 +230,10 @@ const handleOk = () => {
     const {type} = modalInfo
 
     if (type === 'delete') {
-        const parentNode = findParentNode(gData, currentKey)
+        const parentNode = findParentNode(tree, currentKey)
         if (parentNode) {
             parentNode.children = parentNode.children?.filter(item => item.key !== currentKey)
-
-            handleTreeChange(_.cloneDeep(gData))
-            const treeData = formatToTreeData(_.cloneDeep(gData))
+            const treeData = _.cloneDeep(gData)
             store.dispatch({
                 type: 'updateLayoutTree',
                 payload: treeData
@@ -282,19 +261,7 @@ const createNewItem = ({
     position: IPosition,
 }) => {
     return {
-        title: <div onClick={() => handleTreeNodeClick(key)}>
-            {nodeName}
-            <Dropdown
-                menu={{
-                    items
-                }}
-            >
-                <Space>
-                    <PlusOutlined/>
-                </Space>
-            </Dropdown>
-            <DeleteOutlined/>
-        </div>, key, children: [], nodeType, position
+        title: nodeName, key, children: [], nodeType, position
     }
 }
 
@@ -379,12 +346,12 @@ const onFinish = (values: any) => {
 
     if (type === 'add') {
         //     根据id获取其父节点
-        const parentNode = findParentNode(gData, currentKey)
+        const parentNode = findParentNode(tree, currentKey)
         if (parentNode) {
             parentNode?.children?.push(...newItems)
         }
     } else {
-        const curItem = findCurrentNode(gData, currentKey)
+        const curItem = findCurrentNode(tree, currentKey)
         if (!curItem) {
             return message.info('没找到')
         }
@@ -392,8 +359,7 @@ const onFinish = (values: any) => {
         curItem.children = [...newItems, ...curItem.children]
     }
 
-    handleTreeChange(_.cloneDeep(gData))
-    const treeData = formatToTreeData(_.cloneDeep(gData))
+    const treeData = _.cloneDeep(tree)
     store.dispatch({
         type: 'updateLayoutTree',
         payload: treeData

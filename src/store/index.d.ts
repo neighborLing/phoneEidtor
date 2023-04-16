@@ -4,7 +4,7 @@ export interface IPosition {
     left: number;
     top: number;
     remote: number;
-    background: string;
+    background?: string;
     ratio?: number;
     fontFamily?: string;
     fontSize?: number;
