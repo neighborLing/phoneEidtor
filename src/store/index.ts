@@ -81,9 +81,9 @@ function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
 }
 
 const initialTreeState: ITree = {
-    tree: addZIndex(window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : []),
+    // tree: addZIndex(window.localStorage.getItem('layoutTree') ? JSON.parse(window.localStorage.getItem('layoutTree') as string) : []),
     treeTemplates: [],
-    // tree: [],
+    tree: [],
     // treeTemplates: []
 }
 
@@ -105,7 +105,7 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
     switch (action.type) {
         case 'updateLayoutTree':
             const tree = action.payload;
-            window.localStorage.setItem('layoutTree', JSON.stringify(tree));
+            // window.localStorage.setItem('layoutTree', JSON.stringify(tree));
 
             return {
                 ...state,

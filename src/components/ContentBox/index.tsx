@@ -72,9 +72,8 @@ let mouseEnterPosition = {
 const ContentBox = (props: IProps) => {
     const boxRef = useRef<HTMLDivElement>(null);
     const {children, nodeType, position, boxKey: key, zIndex = 1, forExport = false} = props;
-    const defaultPosition = initPosition(position)
-    const [curPosition, setCurrentPosition] = React.useState<IPosition>(defaultPosition);
-    const {contentBoxKey, position: boxPosition} = useSelector(state => state.contentBox);
+    const [curPosition, setCurrentPosition] = React.useState<IPosition>(position as IPosition);
+    const {contentBoxKey} = useSelector(state => state.contentBox);
 
     const setContentBoxKey = (e) => {
         e.stopPropagation()
@@ -84,26 +83,20 @@ const ContentBox = (props: IProps) => {
             type: 'setContentBoxKey',
             payload: key
         });
-        // store.dispatch({
-        //     type: 'setPosition',
-        //     payload: defaultPosition
-        // })
     }
 
     useEffect(() => {
         if (contentBoxKey === key) {
             store.dispatch({
                 type: 'setPosition',
-                payload: defaultPosition
+                payload: position
             })
         }
     }, [contentBoxKey])
 
     useEffect(() => {
-        const positionData = contentBoxKey === key ? boxPosition : defaultPosition;
-
-        setCurrentPosition(initPosition(positionData))
-    }, [contentBoxKey, boxPosition, position])
+        setCurrentPosition(position as IPosition)
+    }, [position])
 
     const selected = useMemo(() => {
         return key === contentBoxKey;
@@ -134,27 +127,27 @@ const ContentBox = (props: IProps) => {
             mouseEnterPosition = {
                 x: e.clientX,
                 y: e.clientY,
-                beforeLeft: boxPosition.left,
-                beforeTop: boxPosition.top,
+                beforeLeft: position.left,
+                beforeTop: position.top,
             }
         }
     };
 
-    const handleMouseMove = useCallback((e) => {
+    const handleMouseMove = (e) => {
         e.stopPropagation();
         if (contentBoxKey !== key || curPosition.isLock) return
         if (boxRef.current) {
             // 鼠标在屏幕中的位置可以使用
             const newX = +mouseEnterPosition.beforeLeft + e.clientX - +mouseEnterPosition.x;
             const newY = +mouseEnterPosition.beforeTop + e.clientY - +mouseEnterPosition.y;
-            const newPosition = {...boxPosition, left: newX, top: newY}
+            const newPosition = {...position, left: newX, top: newY}
             store.dispatch({
                 type: 'setPosition',
                 payload: newPosition,
             });
-            updateTree(newPosition)
+            updateTree(newPosition as IPosition)
         }
-    }, [boxPosition])
+    }
 
     const handleMouseUp = (e) => {
         e.stopPropagation();
@@ -167,16 +160,16 @@ const ContentBox = (props: IProps) => {
         if (contentBoxKey !== key || !boxRef.current) return
         const {width, height} = boxRef.current.getBoundingClientRect();
         const newPosition = {
-            ...boxPosition,
+            ...position,
             width,
-            height: nodeType === 'image777' ? width * boxPosition.ratio : height
+            height: nodeType === 'image777' ? width * position.ratio : height
         }
         store.dispatch({
             type: 'setPosition',
             payload: newPosition,
         });
         document.removeEventListener('mouseup', handleResizeMouseUp);
-        updateTree(newPosition)
+        updateTree(newPosition as IPosition)
     }
 
     const updateTree = (position: IPosition) => {
@@ -208,7 +201,7 @@ const ContentBox = (props: IProps) => {
         //     获取鼠标与盒子中点的角度
         const angle = getAngle(centerPoint, mousePoint);
 
-        const newPosition = {...boxPosition, remote: angle}
+        const newPosition = {...position, remote: angle}
         store.dispatch({
             type: 'setPosition',
             payload: newPosition,
@@ -260,12 +253,12 @@ const ContentBox = (props: IProps) => {
         transform: `rotate(${curPosition.remote}deg)`,
         background: !['triangle', 'lozenge', 'heart'].includes(nodeType) ? curBackground : '',
         // transition: 'all 0.05s',
-        resize: contentBoxKey === key && +curPosition.remote === 0 ? 'both' : 'none',
+        resize: contentBoxKey === key && !curPosition.isLock && +curPosition.remote === 0 ? 'both' : 'none',
         borderRadius: ['roundedRectangle', 'rotundity'].includes(nodeType) ? nodeType === 'roundedRectangle' ? (forExport ? '60px' : '20px') : '9999px' : '0px',
         zIndex,
     }}>
         {
-            selected ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null
+            selected && !curPosition.isLock ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null
         }
         {
             nodeType === 'triangle' ? (

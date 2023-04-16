@@ -96,16 +96,12 @@ const MyForm: React.FC = () => {
             const tree = _.cloneDeep(store.getState().trees.tree);
             const currentNode = findCurrentNode(tree, contentBoxKey);
             if (currentNode) {
-                const values = form.getFieldsValue();
+                // const values = form.getFieldsValue();
                 // @ts-ignore
-                currentNode.position = values
+                currentNode.position = store.getState().contentBox.position;
                 store.dispatch({
                     type: 'updateLayoutTree',
                     payload: _.cloneDeep(tree)
-                })
-                store.dispatch({
-                    type: 'setContentBoxKey',
-                    payload: ''
                 })
             }
         }
@@ -125,171 +121,163 @@ const MyForm: React.FC = () => {
             }
             console.log('payload', payload)
             onValuesChange(payload)
-
-
-            // await new Promise(async (resolve, reject) => {
-            //     // @ts-ignore
-            //     const base64 = await getBase64(file);
-            //     onValuesChange({
-            //         // @ts-ignore
-            //         base64
-            //     })
-            //     resolve(base64)
-            // });
-
         }
 
         return (
             <div className="control-bar">
                 {
-                    nodeType === 'image' ? <Form form={form} onValuesChange={onValuesChange}>
-                        <Form.Item label="宽度" name="width">
-                            <Input/>
-                        </Form.Item>
-                        <Form.Item>
-                            <Button onClick={() => {
-                                const height = form.getFieldValue('height');
-                                const ratio = form.getFieldValue('ratio');
-                                onValuesChange({
-                                    width: height / ratio
-                                })}
-                            }>高度不变，按原比例调整宽度</Button>
-                        </Form.Item>
+                    position.isLock ? null : <div>
+                        {
+                            nodeType === 'image' ? <Form form={form} onValuesChange={onValuesChange}>
+                                <Form.Item label="宽度" name="width">
+                                    <Input/>
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button onClick={() => {
+                                        const height = form.getFieldValue('height');
+                                        const ratio = form.getFieldValue('ratio');
+                                        onValuesChange({
+                                            width: height / ratio
+                                        })}
+                                    }>高度不变，按原比例调整宽度</Button>
+                                </Form.Item>
 
-                        <Form.Item label="高度" name="height">
-                            <Input/>
-                        </Form.Item>
-                        <Form.Item>
-                            <Button onClick={() => {
-                                const width = form.getFieldValue('width');
-                                const ratio = form.getFieldValue('ratio');
-                                onValuesChange({
-                                    height: width * ratio
-                                })}
-                            }>宽度不变，按原比例调整高度</Button>
-                        </Form.Item>
+                                <Form.Item label="高度" name="height">
+                                    <Input/>
+                                </Form.Item>
+                                <Form.Item>
+                                    <Button onClick={() => {
+                                        const width = form.getFieldValue('width');
+                                        const ratio = form.getFieldValue('ratio');
+                                        onValuesChange({
+                                            height: width * ratio
+                                        })}
+                                    }>宽度不变，按原比例调整高度</Button>
+                                </Form.Item>
 
-                        <Form.Item label="左边距" name="left">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="左边距" name="left">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="上边距" name="top">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="上边距" name="top">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="旋转角度" name="remote">
-                            <Input type="number"/>
-                        </Form.Item>
+                                <Form.Item label="旋转角度" name="remote">
+                                    <Input type="number"/>
+                                </Form.Item>
 
-                        <Form.Item label="图片选择" name="background">
-                            <Button>
-                                <ImageUploader onChange={handleImageUpload} multiple={false}/>
-                            </Button>
-                        </Form.Item>
+                                <Form.Item label="图片选择" name="background">
+                                    <Button>
+                                        <ImageUploader onChange={handleImageUpload} multiple={false}/>
+                                    </Button>
+                                </Form.Item>
 
-                        <Form.Item label="高宽比" name="ratio" hidden>
-                            <Input readOnly/>
-                        </Form.Item>
+                                <Form.Item label="高宽比" name="ratio" hidden>
+                                    <Input readOnly/>
+                                </Form.Item>
 
-                        <Form.Item label="url" name="url" hidden>
-                            <Input readOnly/>
-                        </Form.Item>
+                                <Form.Item label="url" name="url" hidden>
+                                    <Input readOnly/>
+                                </Form.Item>
 
-                        <Form.Item label="base64" name="base64" hidden>
-                            <Input readOnly/>
-                        </Form.Item>
-                    </Form> : null
-                }
-                {
-                        nodeType === 'text' ? <Form form={form} onValuesChange={onValuesChange}>
-                            <Form.Item label="宽度" name="width">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="base64" name="base64" hidden>
+                                    <Input readOnly/>
+                                </Form.Item>
+                            </Form> : null
+                        }
+                        {
+                            nodeType === 'text' ? <Form form={form} onValuesChange={onValuesChange}>
+                                <Form.Item label="宽度" name="width">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="高度" name="height">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="高度" name="height">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="左边距" name="left">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="左边距" name="left">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="上边距" name="top">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="上边距" name="top">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="旋转角度" name="remote">
-                                <Input type="number"/>
-                            </Form.Item>
-                            <Form.Item label="字体" name="fontFamily">
-                                <Select>
-                                    {fontOptions.map(i => <Option key={i} value={i}>
+                                <Form.Item label="旋转角度" name="remote">
+                                    <Input type="number"/>
+                                </Form.Item>
+                                <Form.Item label="字体" name="fontFamily">
+                                    <Select>
+                                        {fontOptions.map(i => <Option key={i} value={i}>
                                 <span style={{
                                     fontFamily: i
                                 }}>ABCDEFGHIJKLMNOPQRSTUVXYZ</span>
-                                    </Option>)}
-                                </Select>
-                            </Form.Item>
+                                        </Option>)}
+                                    </Select>
+                                </Form.Item>
 
-                            <Form.Item label="字体大小" name="fontSize">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="字体大小" name="fontSize">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="行距" name="lineHeight">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="行距" name="lineHeight">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="字体颜色" name="color">
-                                <SketchPicker color={form.getFieldValue('color')} onChangeComplete={(color: {
-                                    hex: string;
-                                }) => onValuesChange({
-                                    color: color.hex
-                                })}/>
-                            </Form.Item>
+                                <Form.Item label="字体颜色" name="color">
+                                    <SketchPicker color={form.getFieldValue('color')} onChangeComplete={(color: {
+                                        hex: string;
+                                    }) => onValuesChange({
+                                        color: color.hex
+                                    })}/>
+                                </Form.Item>
 
-                            <Form.Item label="内容" name="content">
-                                <Input/>
-                            </Form.Item>
+                                <Form.Item label="内容" name="content">
+                                    <Input/>
+                                </Form.Item>
 
-                            <Form.Item label="高宽比" name="ratio" hidden>
-                                <Input readOnly/>
-                            </Form.Item>
-                        </Form> : null
-                    }
-                {
-                    !['text', 'image'].includes(nodeType) ? <Form form={form} onValuesChange={onValuesChange}>
-                        <Form.Item label="宽度" name="width">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="高宽比" name="ratio" hidden>
+                                    <Input readOnly/>
+                                </Form.Item>
+                            </Form> : null
+                        }
+                        {
+                            !['text', 'image'].includes(nodeType) ? <Form form={form} onValuesChange={onValuesChange}>
+                                <Form.Item label="宽度" name="width">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="高度" name="height">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="高度" name="height">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="左边距" name="left">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="左边距" name="left">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="上边距" name="top">
-                            <Input/>
-                        </Form.Item>
+                                <Form.Item label="上边距" name="top">
+                                    <Input/>
+                                </Form.Item>
 
-                        <Form.Item label="旋转角度" name="remote">
-                            <Input type="number"/>
-                        </Form.Item>
+                                <Form.Item label="旋转角度" name="remote">
+                                    <Input type="number"/>
+                                </Form.Item>
 
-                        <Form.Item label="背景颜色">
-                            <SketchPicker color={form.getFieldValue('background')} onChangeComplete={(color: {
-                                hex: string;
-                            }) => onValuesChange({
-                                background: color.hex
-                            })}/>
-                        </Form.Item>
+                                <Form.Item label="背景颜色">
+                                    <SketchPicker color={form.getFieldValue('background')} onChangeComplete={(color: {
+                                        hex: string;
+                                    }) => onValuesChange({
+                                        background: color.hex
+                                    })}/>
+                                </Form.Item>
 
-                        <Form.Item label="高宽比" name="ratio" hidden>
-                            <Input readOnly/>
-                        </Form.Item>
-                    </Form> : null
+                                <Form.Item label="高宽比" name="ratio" hidden>
+                                    <Input readOnly/>
+                                </Form.Item>
+                            </Form> : null
+                        }
+                    </div>
                 }
             </div>
         );

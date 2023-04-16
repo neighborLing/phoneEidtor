@@ -9,6 +9,8 @@ import {Provider} from "react-redux";
 import ControlBar from "./components/ControlBar";
 import axios from "axios";
 
+window.$store = store;
+
 function App() {
     const fetchPhone = async () => {
         const phones = await axios.get('http://47.108.29.87:3000/phones/content');

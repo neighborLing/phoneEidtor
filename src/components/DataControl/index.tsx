@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import store, { IPhone, ITemplate } from '../../store';
 import _ from 'lodash';
 import { toPng } from 'html-to-image';
+import { handleResizeTree } from '../../utils/tree';
 const { Option } = Select;
 const baseClassName = 'data-control';
 interface Props {}
@@ -56,6 +57,10 @@ const MyComponent: React.FC<Props> = () => {
     }
 
     const selectTree = (value: string) => {
+        const { phoneSize = {} } = store.getState().phones;
+        if (!phoneSize.width) {
+            return message.warning('请先选择手机尺寸')
+        }
         const cm = confirm('确定要覆盖当前布局吗？');
         if (!cm) {
             return setSelectedTemplate('');
@@ -66,11 +71,19 @@ const MyComponent: React.FC<Props> = () => {
             //     width: selectedTree.width,
             //     height: selectedTree.height,
             // }))
+
+            const resizeTree = handleResizeTree(selectedTree.tree, {
+                width: selectedTree.width,
+                height: selectedTree.height,
+            }, {
+                width: phoneSize.width,
+                height: phoneSize.height,
+            })
             // TODO 获取所有，进行转换
             dispatch({
                 type: 'updateLayoutTree',
                 // TODO 替换当前树对于的尺寸
-                payload: _.cloneDeep(selectedTree.tree)
+                payload: _.cloneDeep(resizeTree)
             })
         }
     }

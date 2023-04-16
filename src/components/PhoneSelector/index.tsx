@@ -3,8 +3,8 @@ import {Select} from 'antd';
 import './index.less';
 import {useSelector} from 'react-redux';
 import Editor from "../Editor";
-import store, {ITreeNode} from "../../store/index";
-import _ from "lodash";
+import store from "../../store/index";
+import { handleResizeTree } from '../../utils/tree';
 
 const {Option} = Select;
 const baseClassName = 'phone-selector';
@@ -40,35 +40,6 @@ const Index = () => {
     }, [
         selectedPhone
     ])
-
-    const handleResizeTree = (tree, originSize, newSize) => {
-        //     获取当前手机宽高
-        const { width: originWidth, height: originHeight } = originSize;
-        const { width: newWidth, height: newHeight } = newSize;
-        // 遍历树，按比例调整每个节点的宽高
-        const resizeTree = _.cloneDeep(tree);
-        store.dispatch({
-            type: 'setContentBoxKey',
-            payload: ''
-        })
-        // debugger
-        const resizeNode = (node: ITreeNode) => {
-            if (node.children) {
-                node.children.forEach((child: ITreeNode) => {
-                    resizeNode(child);
-                })
-            }
-            if (!node.position) return;
-            // debugger
-            node.position.width = node.position.width * newWidth / originWidth;
-            node.position.height = node.position.height * newHeight / originHeight;
-            node.position.left = node.position.left * newWidth / originWidth;
-            node.position.top = node.position.top * newHeight / originHeight;
-        }
-        // debugger
-        resizeNode(resizeTree[0]);
-        return resizeTree;
-    }
 
     const handlePhoneChange = (value: string) => {
         const phone = phoneTypes.find((p) => p.name === value) || phoneTypes[0] || emptyPhone;
