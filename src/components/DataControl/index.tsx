@@ -3,23 +3,16 @@ import {Button,Input,Modal,message,Select} from "antd";
 import "./index.less";
 import LocalFileUploader from "../LocalFileUploader";
 import {useDispatch, useSelector} from 'react-redux';
-import store, { IPhone, ITreeNode, ITemplate } from '../../store';
+import store, { IPhone, ITemplate } from '../../store';
 import _ from 'lodash';
 import { toPng, toCanvas } from 'html-to-image';
 const { Option } = Select;
 const baseClassName = 'data-control';
-
-
-interface Props {
-    onImportTemplate: () => void;
-}
-
-const MyComponent: React.FC<Props> = ({
-                                          onImportTemplate,
-                                      }) => {
+interface Props {}
+const MyComponent: React.FC<Props> = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [templateName, setTemplateName] = useState('');
-    const { tree, treeTemplates } = useSelector((state: any) => state.trees);
+    const { treeTemplates } = useSelector((state: any) => state.trees);
     const inputRef = useRef(null);
     const [selectedTemplate, setSelectedTemplate] = useState('');
     const dispatch = useDispatch();
@@ -28,7 +21,7 @@ const MyComponent: React.FC<Props> = ({
 
         return phones.reduce((acc: IPhone[], phone: string) => {
             const [name, width, height] = phone.split(' ');
-
+            if (!name || !width || !height) return acc;
             acc.push({
                 name,
                 width: +width,
@@ -52,7 +45,10 @@ const MyComponent: React.FC<Props> = ({
             })
             dispatch({
               type: 'updateLayoutTreeTemplates',
-                payload: _.cloneDeep(treeTemplates)
+                payload: {
+                    treeTemplates: _.cloneDeep(treeTemplates),
+                    save: true
+                }
             })
         }
 
@@ -66,18 +62,16 @@ const MyComponent: React.FC<Props> = ({
         }
         const selectedTree = treeTemplates.find((treeTemplate: ITemplate) => treeTemplate.name === value);
         if (selectedTree) {
+            // window.localStorage.setItem('currentSize', JSON.stringify({
+            //     width: selectedTree.width,
+            //     height: selectedTree.height,
+            // }))
+            // TODO 获取所有，进行转换
             dispatch({
                 type: 'updateLayoutTree',
+                // TODO 替换当前树对于的尺寸
                 payload: _.cloneDeep(selectedTree.tree)
             })
-            window.localStorage.setItem('currentSize', JSON.stringify({
-                width: selectedTree.width,
-                height: selectedTree.height,
-            }))
-            setTimeout(() => {
-            //     页面刷新
-                window.location.reload();
-            }, 200)
         }
     }
 
@@ -93,27 +87,6 @@ const MyComponent: React.FC<Props> = ({
             payload: ''
         })
         const editor = document.getElementById('phoneEditor')!;
-        // 把所有链接都换成base64
-        // const imgs = editor.getElementsByTagName('img');
-        // for (let i = 0; i < imgs.length; i++) {
-        //     const img = imgs[i];
-        //     const src = img.getAttribute('src');
-        //     if (src && src.startsWith('http')) {
-        //         img.setAttribute('src', 'https://img.alicdn.com/tfs/TB1yQJ2QpXXXXX5XpXXXXXXXXXX-200-200.png');
-        //     }
-        //
-        //     const image = new Image();
-        //     image.src = src;
-        //     image.onload = function () {
-        //         const canvas = document.createElement('canvas');
-        //         canvas.width = image.width;
-        //         canvas.height = image.height;
-        //         const ctx = canvas.getContext('2d');
-        //         ctx.drawImage(image, 0, 0, image.width, image.height);
-        //         const dataURL = canvas.toDataURL('image/png');
-        //         img.setAttribute('src', dataURL);
-        //     }
-        // }
         if (!editor) return;
         toCanvas(editor).then((canvas) => {
             document.body.appendChild(canvas);
@@ -135,11 +108,13 @@ const MyComponent: React.FC<Props> = ({
                 message.success('上传成功')
                 dispatch({
                     type: 'updatePhones',
-                    payload: phonesTextHandler(text),
+                    payload: {
+                        phones: phonesTextHandler(text),
+                        save: true
+                    },
                 })
             }
             }/>
-            {/*<div className={`${baseClassName}-button`}><Button onClick={onImportTemplate}>导入模板</Button></div>*/}
             <div className={`${baseClassName}-button`}><Button onClick={() => setModalVisible(true)}>保存模板</Button></div>
             <Select style={{
                 width: '200px',
@@ -158,12 +133,11 @@ const MyComponent: React.FC<Props> = ({
                 onCancel={() => setModalVisible(false)}
                 onOk={() => onSaveTemplate()}
             >
-                {/* Add the Input component */}
                 <Input
                     value={templateName}
                     onChange={(e) => setTemplateName(e.target.value)}
                     placeholder="请输入模板名称"
-                    ref={inputRef} // Assign the ref to the Input component
+                    ref={inputRef}
                 />
             </Modal>
         </div>

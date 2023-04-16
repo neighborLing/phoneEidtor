@@ -27,7 +27,6 @@ const Index = () => {
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(emptyPhone);
     useEffect(() => {
         setSelectedPhone(emptyPhone);
-        console.log('phoneTypes', phoneTypes)
     }, [phoneTypes])
 
     useEffect(() => {
@@ -42,13 +41,17 @@ const Index = () => {
         selectedPhone
     ])
 
-    const handleResizeTree = (tree, originSize) => {
+    const handleResizeTree = (tree, originSize, newSize) => {
         //     获取当前手机宽高
-        const { phoneSize } = store.getState().phones;
-        const { width, height } = phoneSize;
         const { width: originWidth, height: originHeight } = originSize;
+        const { width: newWidth, height: newHeight } = newSize;
         // 遍历树，按比例调整每个节点的宽高
         const resizeTree = _.cloneDeep(tree);
+        store.dispatch({
+            type: 'setContentBoxKey',
+            payload: ''
+        })
+        // debugger
         const resizeNode = (node: ITreeNode) => {
             if (node.children) {
                 node.children.forEach((child: ITreeNode) => {
@@ -56,26 +59,40 @@ const Index = () => {
                 })
             }
             if (!node.position) return;
-            node.position.width = node.position.width * width / originWidth;
-            node.position.height = node.position.height * height / originHeight;
-            node.position.left = node.position.left * width / originWidth;
-            node.position.top = node.position.top * height / originHeight;
+            // debugger
+            node.position.width = node.position.width * newWidth / originWidth;
+            node.position.height = node.position.height * newHeight / originHeight;
+            node.position.left = node.position.left * newWidth / originWidth;
+            node.position.top = node.position.top * newHeight / originHeight;
         }
-        resizeNode(resizeTree);
+        // debugger
+        resizeNode(resizeTree[0]);
         return resizeTree;
     }
 
     const handlePhoneChange = (value: string) => {
         const phone = phoneTypes.find((p) => p.name === value) || phoneTypes[0] || emptyPhone;
+        const newSize = {
+            width: phone.width,
+            height: phone.height,
+        }
         setSelectedPhone(phone);
         const { tree } = store.getState().trees;
+        // 获取模版的宽高
         const originSize = window.localStorage.getItem('currentSize');
-
+        if (originSize) {
+            store.dispatch({
+                type: 'updateLayoutTree',
+                payload: handleResizeTree(tree, JSON.parse(originSize), newSize)
+            })
+        };
+        window.localStorage.setItem('currentSize', JSON.stringify({
+            width: phone.width,
+            height: phone.height,
+        }))
         store.dispatch({
-            type: 'updateLayoutTree',
-            payload: {
-                tree: handleResizeTree(tree, originSize ? JSON.parse(originSize) : { width: phone.width, height: phone.height }),
-            }
+            type: 'updatePhoneSize',
+            payload: newSize
         })
     };
 

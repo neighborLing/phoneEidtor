@@ -142,7 +142,6 @@ const MyForm: React.FC = () => {
         return (
             <div className="control-bar">
                 {
-
                     nodeType === 'image' ? <Form form={form} onValuesChange={onValuesChange}>
                         <Form.Item label="宽度" name="width">
                             <Input/>
@@ -199,7 +198,66 @@ const MyForm: React.FC = () => {
                         <Form.Item label="base64" name="base64" hidden>
                             <Input readOnly/>
                         </Form.Item>
-                    </Form> : <Form form={form} onValuesChange={onValuesChange}>
+                    </Form> : null
+                }
+                {
+                        nodeType === 'text' ? <Form form={form} onValuesChange={onValuesChange}>
+                            <Form.Item label="宽度" name="width">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="高度" name="height">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="左边距" name="left">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="上边距" name="top">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="旋转角度" name="remote">
+                                <Input type="number"/>
+                            </Form.Item>
+                            <Form.Item label="字体" name="fontFamily">
+                                <Select>
+                                    {fontOptions.map(i => <Option key={i} value={i}>
+                                <span style={{
+                                    fontFamily: i
+                                }}>ABCDEFGHIJKLMNOPQRSTUVXYZ</span>
+                                    </Option>)}
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item label="字体大小" name="fontSize">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="行距" name="lineHeight">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="字体颜色" name="color">
+                                <SketchPicker color={form.getFieldValue('color')} onChangeComplete={(color: {
+                                    hex: string;
+                                }) => onValuesChange({
+                                    color: color.hex
+                                })}/>
+                            </Form.Item>
+
+                            <Form.Item label="内容" name="content">
+                                <Input/>
+                            </Form.Item>
+
+                            <Form.Item label="高宽比" name="ratio" hidden>
+                                <Input readOnly/>
+                            </Form.Item>
+                        </Form> : null
+                    }
+                {
+                    !['text', 'image'].includes(nodeType) ? <Form form={form} onValuesChange={onValuesChange}>
                         <Form.Item label="宽度" name="width">
                             <Input/>
                         </Form.Item>
@@ -227,46 +285,11 @@ const MyForm: React.FC = () => {
                                 background: color.hex
                             })}/>
                         </Form.Item>
-                        <Form.Item>
-                            <Button onClick={() => onValuesChange({
-                                background: ''
-                            })}>清除背景颜色</Button>
-                        </Form.Item>
-
-                        <Form.Item label="字体" name="fontFamily">
-                            <Select>
-                                {fontOptions.map(i => <Option key={i} value={i}>
-                                <span style={{
-                                    fontFamily: i
-                                }}>ABCDEFGHIJKLMNOPQRSTUVXYZ</span>
-                                </Option>)}
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item label="字体大小" name="fontSize">
-                            <Input/>
-                        </Form.Item>
-
-                        <Form.Item label="行距" name="lineHeight">
-                            <Input/>
-                        </Form.Item>
-
-                        <Form.Item label="字体颜色" name="color">
-                            <SketchPicker color={form.getFieldValue('color')} onChangeComplete={(color: {
-                                hex: string;
-                            }) => onValuesChange({
-                                color: color.hex
-                            })}/>
-                        </Form.Item>
-
-                        <Form.Item label="内容" name="content">
-                            <Input/>
-                        </Form.Item>
 
                         <Form.Item label="高宽比" name="ratio" hidden>
                             <Input readOnly/>
                         </Form.Item>
-                    </Form>
+                    </Form> : null
                 }
             </div>
         );

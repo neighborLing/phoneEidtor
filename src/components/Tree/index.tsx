@@ -1,7 +1,7 @@
 import {Tree, Modal, Form, Input, Select, message, Button} from 'antd';
 import type {DataNode, TreeProps} from 'antd/es/tree';
 import React, {useState, useEffect, ReactElement} from 'react';
-import {PlusOutlined} from '@ant-design/icons';
+import {PlusOutlined, DeleteOutlined, LockOutlined, UnlockOutlined} from '@ant-design/icons';
 import type {MenuProps} from 'antd';
 import {Dropdown, Space} from 'antd';
 import store from '../../store';
@@ -14,25 +14,19 @@ import {IImageInfo} from "../ImageUploader";
 import {IPosition} from '../../store/index.d';
 
 const cls = 'layout-tree'
-
-const x = 3;
-const y = 2;
-const z = 1;
 const defaultData: DataNode[] = [];
 const {Option} = Select
 
 const shapeOptions = [
-    { key: 'image', value: '图片' },
-    { key: 'rectangle', value: '矩形' },
-    { key: 'roundedRectangle', value: '圆角矩形' },
-    { key: 'rotundity', value: '圆形' },
-    { key: 'lozenge', value: '菱形' },
-    { key: 'triangle', value: '三角形' },
-    { key: 'heart', value: '心形' },
-    { key: 'text', value: '文字' }
+    {key: 'image', value: '图片'},
+    {key: 'rectangle', value: '矩形'},
+    {key: 'roundedRectangle', value: '圆角矩形'},
+    {key: 'rotundity', value: '圆形'},
+    {key: 'lozenge', value: '菱形'},
+    {key: 'triangle', value: '三角形'},
+    {key: 'heart', value: '心形'},
+    {key: 'text', value: '文字'}
 ];
-
-
 
 interface ITreeNode extends DataNode {
     position?: IPosition
@@ -54,7 +48,7 @@ const LayoutTree: React.FC = () => {
     });
     const [currentKey, setCurrentKey] = useState('');
     const [imageInfos, setImageInfos] = useState<IImageInfo[]>([]);
-    const { contentBoxKey } = useSelector((state: any) => state.contentBox);
+    const {contentBoxKey} = useSelector((state: any) => state.contentBox);
 
     // 获取所有节点的key值
     function getAllkeys(data: DataNode[]) {
@@ -68,15 +62,20 @@ const LayoutTree: React.FC = () => {
         return keys;
     }
 
+    function handleTreeChange(gData: DataNode[]) {
+        setGData(gData)
+        // @ts-ignore
+        setExpandedKeys(getAllkeys(tree))
+    }
+
     useEffect(() => {
         setCurrentKey(contentBoxKey)
     }, [contentBoxKey])
 
     useEffect(() => {
+        console.log('tree chagne')
         const gData = formatToTreeNode(_.cloneDeep(tree))
-        setGData(gData)
-        // @ts-ignore
-        setExpandedKeys(getAllkeys(tree))
+        handleTreeChange(gData)
     }, [tree])
 
 
@@ -91,12 +90,17 @@ const LayoutTree: React.FC = () => {
     function createNewTree() {
         const now = Date.now()
         const key = `root-${now}`
+        // @ts-ignore
         const curItem: ITreeNode = {
-            title: <div onClick={() => handleTreeNodeClick(key)}>
+            title: <div style={{
+                width: '100%',
+                height: '100%',
+                background: '#333333',
+            }}>
                 图层
                 <Dropdown
                     menu={{
-                        items
+                        items: _items
                     }}
                 >
                     <Space>
@@ -110,28 +114,31 @@ const LayoutTree: React.FC = () => {
         ]
         setGData(data)
         // @ts-ignore
-        setExpandedKeys(data)
+        handleTreeChange(data)
         const treeData = formatToTreeData(_.cloneDeep(data))
         store.dispatch({
             type: 'updateLayoutTree',
             payload: treeData
         })
-        // @ts-ignore
-        setExpandedKeys(getAllkeys(treeData))
-        const { phoneSize } = store.getState().phones
+        const {phoneSize} = store.getState().phones
         window.localStorage.setItem('currentSize', JSON.stringify(phoneSize))
     }
 
-    function initGData() {
-        if (gData.length) return;
+    useEffect(() => {
         if (!tree.length) {
             createNewTree()
         }
-    }
-
-    useEffect(() => {
-        initGData()
     }, [])
+
+    const _items = [
+        {
+            key: 'add-node',
+            label: '新增子图层',
+            onClick: () => {
+                showModal('addChild');
+            },
+        },
+    ]
 
     const items: MenuProps['items'] = [
         {
@@ -141,13 +148,7 @@ const LayoutTree: React.FC = () => {
                 showModal('add');
             },
         },
-        {
-            key: 'add-node',
-            label: '新增子图层',
-            onClick: () => {
-                showModal('addChild');
-            },
-        },
+        ..._items,
         {
             key: 'delete',
             label: '删除',
@@ -157,6 +158,8 @@ const LayoutTree: React.FC = () => {
         }
     ];
 
+    // 转为数据节点
+    // @ts-ignore
     const formatToTreeData = (data: DataNode[]) => {
         return data.map(item => {
             if (item.children) {
@@ -171,279 +174,281 @@ const LayoutTree: React.FC = () => {
         })
     }
 
-    const formatToTreeNode = (data: DataNode[]) => {
-        return data.map(item => {
+    const handleLockLayout = (key: string) => {
+        const curItem = findCurrentNode(gData, key)
+        if (curItem) {
             // @ts-ignore
-            const title = <div onClick={() => handleTreeNodeClick(item.key as string)}>
-                {item.title}
-                <Dropdown
-                    menu={{
-                        items
-                    }}
-                >
-                    <Space>
-                        <PlusOutlined/>
-                    </Space>
-                </Dropdown>
-            </div>
-            if (item.children) {
-                // @ts-ignore
-                return {
-                    ...item,
-                    title,
-                    children: formatToTreeNode(item.children)
-                }
-            } else {
-                return {
-                    ...item,
-                    title
-                }
-            }
-        })
+            curItem.isLock = !curItem.isLock
+            const treeData = formatToTreeData(_.cloneDeep(gData))
+            store.dispatch({
+                type: 'updateLayoutTree',
+                payload: treeData
+            })
+        }
     }
 
-
-    // 新增节点的表单数据
-    const [form] = Form.useForm();
-
-    const showModal = (type: 'add' | 'addChild' | 'delete') => {
-        form.setFieldsValue({
-            nodeType: 'image',
-        })
-        setModalVisible(true);
-        form.resetFields();
-        form.setFieldValue('nodeType', 'image')
-        setModalInfo({
-            ...modalInfo,
-            title: type.includes('add') ? (type === 'add' ? '新增同级' : '新增子节点') : '删除节点',
-            type
-        })
-    };
-
-    const handleOk = () => {
-        const {type} = modalInfo
-
-        if (type === 'delete') {
-            const parentNode = findParentNode(gData, currentKey)
-            if (parentNode) {
-                parentNode.children = parentNode.children?.filter(item => item.key !== currentKey)
-
-                setGData(_.cloneDeep(gData))
-                const treeData = formatToTreeData(_.cloneDeep(gData))
-                store.dispatch({
-                    type: 'updateLayoutTree',
-                    payload: treeData
-                })
-                // @ts-ignore
-                setExpandedKeys(getAllkeys(treeData))
+// 转为树节点
+// @ts-ignore
+const formatToTreeNode = (data: DataNode[]) => {
+    return data.map(item => {
+        // @ts-ignore
+        const title = <div onClick={() => handleTreeNodeClick(item.key as string)}>
+            {item.title}
+            <Dropdown
+                menu={{
+                    // @ts-ignore
+                    items: item.key.includes('root') ? _items : items
+                }}
+            >
+                <Space>
+                    <PlusOutlined/>
+                </Space>
+            </Dropdown>
+            <span onClick={() => handleLockLayout(item.key as string)} style={{
+                marginLeft: '10px',
+                cursor: 'pointer'
+            }}>
+                    {
+                        // @ts-ignore
+                        item?.isLock ? <LockOutlined/> : <UnlockOutlined/>
+                    }
+                </span>
+        </div>
+        if (item.children) {
+            // @ts-ignore
+            return {
+                ...item,
+                title,
+                children: formatToTreeNode(item.children)
             }
-            setModalVisible(false);
         } else {
-            form.submit();
+            return {
+                ...item,
+                title
+            }
         }
-    };
+    })
+}
 
-    const handleCancel = () => {
+
+// 新增节点的表单数据
+const [form] = Form.useForm();
+
+const showModal = (type: 'add' | 'addChild' | 'delete') => {
+    setModalVisible(true);
+    form.resetFields();
+    form.setFieldValue('nodeType', 'image')
+    setModalInfo({
+        ...modalInfo,
+        title: type.includes('add') ? (type === 'add' ? '新增同级' : '新增子节点') : '删除节点',
+        type
+    })
+};
+
+const handleOk = () => {
+    const {type} = modalInfo
+
+    if (type === 'delete') {
+        const parentNode = findParentNode(gData, currentKey)
+        if (parentNode) {
+            parentNode.children = parentNode.children?.filter(item => item.key !== currentKey)
+
+            handleTreeChange(_.cloneDeep(gData))
+            const treeData = formatToTreeData(_.cloneDeep(gData))
+            store.dispatch({
+                type: 'updateLayoutTree',
+                payload: treeData
+            })
+        }
         setModalVisible(false);
-    };
-
-    const createNewItem = ({
-                               nodeName,
-                               key,
-                               nodeType,
-                               position,
-                           }: {
-        nodeName: string,
-        key: string,
-        nodeType: string,
-        position: IPosition,
-    }) => {
-        return {
-            title: <div onClick={() => handleTreeNodeClick(key)}>
-                {nodeName}
-                <Dropdown
-                    menu={{
-                        items
-                    }}
-                >
-                    <Space>
-                        <PlusOutlined/>
-                    </Space>
-                </Dropdown>
-            </div>, key, children: [], nodeType, position
-        }
+    } else {
+        form.submit();
     }
+};
 
-    const handleRectangleType = (values: any) => {
+const handleCancel = () => {
+    setModalVisible(false);
+};
+
+const createNewItem = ({
+                           nodeName,
+                           key,
+                           nodeType,
+                           position,
+                       }: {
+    nodeName: string,
+    key: string,
+    nodeType: string,
+    position: IPosition,
+}) => {
+    return {
+        title: <div onClick={() => handleTreeNodeClick(key)}>
+            {nodeName}
+            <Dropdown
+                menu={{
+                    items
+                }}
+            >
+                <Space>
+                    <PlusOutlined/>
+                </Space>
+            </Dropdown>
+            <DeleteOutlined/>
+        </div>, key, children: [], nodeType, position
+    }
+}
+
+const handleRectangleType = (values: any) => {
+    const {nodeType} = values
+    const now = Date.now()
+    const key = `${nodeType}-${now}`
+    const position = {
+        width: 100,
+        height: 100,
+        left: 0,
+        top: 0,
+        remote: 0,
+        background: '#1890ff',
+    }
+    const nodeName = shapeOptions.find(i => i.key === nodeType)?.value || '未知'
+    const newItem = createNewItem({nodeName, key, nodeType, position})
+
+    return [newItem]
+}
+
+const handleImageType = (values: any) => {
+    const newItems = imageInfos.map((item, index) => {
         const {nodeType} = values
         const now = Date.now()
-        const key = `${nodeType}-${now}`
+        const key = `${nodeType}-${now}-${index}`
         const position = {
             width: 100,
-            height: 100,
+            height: Math.floor(item.height / item.width * 100),
+            // 原有图片的宽高比
+            ratio: item.height / item.width,
             left: 0,
             top: 0,
             remote: 0,
-            background: '#1890ff',
-            fontFamily: 'ChannelSlanted2',
-            fontSize: 14,
-            color: '#fff',
-            content: ''
+            background: `url("${item.url}") 0% 0% / 100% 100%`,
+            url: item.url,
+            base64: item.base64,
         }
-        const nodeName = shapeOptions.find(i => i.key === nodeType)?.value || '未知'
-        const newItem = createNewItem({nodeName, key, nodeType, position})
+        return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
+    })
 
-        return [newItem]
+    return newItems
+}
+
+const handleTextType = (values: any) => {
+    const {nodeType} = values
+    const now = Date.now()
+    const key = `${nodeType}-${now}`
+    const position = {
+        width: 150,
+        height: 100,
+        left: 0,
+        top: 0,
+        remote: 0,
+        fontFamily: 'ChannelSlanted2',
+        fontSize: 14,
+        color: '#000000',
+        content: 'placeholder'
+    }
+    const nodeName = shapeOptions.find(i => i.key === nodeType)?.value || '未知'
+    const newItem = createNewItem({nodeName, key, nodeType, position})
+
+    return [newItem]
+}
+
+const onFinish = (values: any) => {
+    const {nodeType} = values
+    const {type} = modalInfo
+    const newItems = []
+
+    switch (nodeType) {
+        case 'image':
+            newItems.push(...handleImageType(values))
+            break
+        case 'text':
+            newItems.push(...handleTextType(values))
+            break
+        default:
+            newItems.push(...handleRectangleType(values))
+            break
     }
 
-    const handleImageType = (values: any) => {
-        const newItems = imageInfos.map((item, index) => {
-            const {nodeType} = values
-            const now = Date.now()
-            const key = `${nodeType}-${now}-${index}`
-            const position = {
-                width: 100,
-                height: Math.floor(item.height / item.width * 100),
-                // 原有图片的宽高比
-                ratio: item.height / item.width,
-                left: 0,
-                top: 0,
-                remote: 0,
-                background: `url("${item.url}") 0% 0% / 100% 100%`,
-                url: item.url,
-                base64: item.base64,
-            }
-            return createNewItem({nodeName: `${item.name}-${index}`, key, nodeType, position})
-        })
-
-        return newItems
+    if (type === 'add') {
+        //     根据id获取其父节点
+        const parentNode = findParentNode(gData, currentKey)
+        if (parentNode) {
+            parentNode?.children?.push(...newItems)
+        }
+    } else {
+        const curItem = findCurrentNode(gData, currentKey)
+        if (!curItem) {
+            return message.info('没找到')
+        }
+        curItem.children = curItem.children || []
+        curItem.children = [...newItems, ...curItem.children]
     }
 
-
-    const onFinish = (values: any) => {
-        const {nodeType} = values
-        const {type} = modalInfo
-        const newItems = []
-
-        switch (nodeType) {
-            case 'image':
-                newItems.push(...handleImageType(values))
-                break
-            default:
-                newItems.push(...handleRectangleType(values))
-                break
-        }
-
-        if (type === 'add') {
-            //     根据id获取其父节点
-            const parentNode = findParentNode(gData, currentKey)
-            if (parentNode) {
-                parentNode?.children?.push(...newItems)
-            }
-        } else {
-            const curItem = findCurrentNode(gData, currentKey)
-            if (!curItem) {
-                return message.info('没找到')
-            }
-            curItem.children = curItem.children || []
-            curItem.children = [...newItems, ...curItem.children]
-        }
-
-        setGData(_.cloneDeep(gData))
-        const treeData = formatToTreeData(_.cloneDeep(gData))
-        store.dispatch({
-            type: 'updateLayoutTree',
-            payload: treeData
-        })
-        // @ts-ignore
-        setExpandedKeys(getAllkeys(treeData))
-
-        // 处理新增节点的逻辑
-        setModalVisible(false);
-    };
-
-    const generateData = (_level: number, _preKey?: React.Key, _tns?: DataNode[]) => {
-        const preKey = _preKey || '0';
-        const tns = _tns || defaultData;
-
-        const children = [];
-        for (let i = 0; i < x; i++) {
-            const key = `${preKey}-${i}`;
-            tns.push({
-                title: <div onClick={() => handleTreeNodeClick(key)}>
-                    {key}
-                    <Dropdown
-                        menu={{
-                            items
-                        }}
-                    >
-                        <Space>
-                            <PlusOutlined/>
-                        </Space>
-                    </Dropdown>
-                </div>, key
-            });
-            if (i < y) {
-                children.push(key);
-            }
-        }
-        if (_level < 0) {
-            return tns;
-        }
-        const level = _level - 1;
-        children.forEach((key, index) => {
-            tns[index].children = [];
-            return generateData(level, key, tns[index].children);
-        });
-    };
-    // generateData(z);
-
-    const handleImageUpload = (imageInfos: IImageInfo[]) => {
-        setImageInfos(imageInfos)
-    }
-
-    const resetTree = () => {
-        const cm = confirm('确认需要重置吗？')
-        if (!cm) return
-        createNewTree()
-    }
-
-    return (
-        <div className={cls}>
-            {/*draggable*/}
-            <Button type="primary" onClick={resetTree} style={{
-                marginBottom: '10px'
-            }}>重置</Button>
-            <Tree
-                className="draggable-tree"
-                defaultExpandAll={true}
-                expandedKeys={expandedKeys}
-                blockNode
-                treeData={gData}
-                selectedKeys={[currentKey]}
-            />
-            <Modal title={modalInfo.title} open={modalVisible} onOk={handleOk} onCancel={handleCancel}>
-                {
-                    modalInfo.type !== 'delete' ? <Form form={form} onFinish={onFinish}>
-                        <Form.Item name="nodeType" label="类型" rules={[{required: true, message: '请选择类型'}]}>
-                            <Select placeholder="请选择节点类型">
-                                {
-                                    shapeOptions.map(shape => <Option value={shape.key} key={shape.key}>{shape.value}</Option>)
-                                }
-                            </Select>
-                        </Form.Item>
-                        <Form.Item noStyle
-                                   shouldUpdate={(prevValues, curValues) => prevValues.nodeType !== curValues.nodeType}>
-                            {({getFieldValue}) => getFieldValue('nodeType') === 'image' ?
-                                <Form.Item name="image" label="图片" rules={[{required: true, message: '请上传图片'}]}>
-                                    <ImageUploader onChange={handleImageUpload}/>
-                                </Form.Item> : null}
-                        </Form.Item>
-                    </Form> : <span>确认删除？</span>
-                }
-            </Modal>
-        </div>
-    );
+    handleTreeChange(_.cloneDeep(gData))
+    const treeData = formatToTreeData(_.cloneDeep(gData))
+    store.dispatch({
+        type: 'updateLayoutTree',
+        payload: treeData
+    })
+    // 处理新增节点的逻辑
+    setModalVisible(false);
 };
+
+const handleImageUpload = (imageInfos: IImageInfo[]) => {
+    setImageInfos(imageInfos)
+}
+
+const resetTree = () => {
+    const cm = confirm('确认需要重置吗？')
+    if (!cm) return
+    createNewTree()
+}
+
+return (
+    <div className={cls}>
+        <Button type="primary" onClick={resetTree} style={{
+            marginBottom: '10px'
+        }}>重置</Button>
+        <Tree
+            className="draggable-tree"
+            defaultExpandAll={true}
+            expandedKeys={expandedKeys}
+            blockNode
+            treeData={gData}
+            selectedKeys={[currentKey]}
+        />
+        <Modal title={modalInfo.title} open={modalVisible} onOk={handleOk} onCancel={handleCancel}>
+            {
+                modalInfo.type !== 'delete' ? <Form form={form} onFinish={onFinish}>
+                    <Form.Item name="nodeType" label="类型" rules={[{required: true, message: '请选择类型'}]}>
+                        <Select placeholder="请选择节点类型">
+                            {
+                                shapeOptions.map(shape => <Option value={shape.key}
+                                                                  key={shape.key}>{shape.value}</Option>)
+                            }
+                        </Select>
+                    </Form.Item>
+                    <Form.Item noStyle
+                               shouldUpdate={(prevValues, curValues) => prevValues.nodeType !== curValues.nodeType}>
+                        {({getFieldValue}) => getFieldValue('nodeType') === 'image' ?
+                            <Form.Item name="image" label="图片" rules={[{required: true, message: '请上传图片'}]}>
+                                <ImageUploader onChange={handleImageUpload}/>
+                            </Form.Item> : null}
+                    </Form.Item>
+                </Form> : <span>确认删除？</span>
+            }
+        </Modal>
+    </div>
+);
+}
+;
 
 export default LayoutTree;
