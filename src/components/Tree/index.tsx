@@ -118,6 +118,8 @@ const LayoutTree: React.FC = () => {
         })
         // @ts-ignore
         setExpandedKeys(getAllkeys(treeData))
+        const { phoneSize } = store.getState().phones
+        window.localStorage.setItem('currentSize', JSON.stringify(phoneSize))
     }
 
     function initGData() {

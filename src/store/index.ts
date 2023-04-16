@@ -12,6 +12,10 @@ export interface IPhone {
 
 interface IPhonesState {
     phones: IPhone[],
+    phoneSize: {
+        width: number,
+        height: number
+    }
 }
 
 export interface ITreeNode {
@@ -19,6 +23,7 @@ export interface ITreeNode {
     key: string,
     children: ITreeNode[],
     zIndex?: number,
+    position?: IPosition,
 }
 
 export interface ITemplate {
@@ -47,6 +52,10 @@ export function addZIndex(treeData: ITreeNode[], parentZIndex: number = 0) {
 
 const initialPhonesState: IPhonesState = {
     phones: [],
+    phoneSize: {
+        width: 0,
+        height: 0
+    }
 };
 
 function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
@@ -63,6 +72,11 @@ function phoneReducer(state: IPhonesState = initialPhonesState, action: any) {
         case 'updatePhones2':
             return {
                 phones: action.payload,
+            }
+        case 'updatePhoneSize':
+            return {
+                ...state,
+                phoneSize: action.payload
             }
         default:
             return state;
@@ -116,10 +130,11 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
             // window.localStorage.setItem('layoutTreeTemplates', JSON.stringify(treeTemplates));
             axios.post('http://47.108.29.87:3000/files/trees/content', {
                 content: JSON.stringify(_.cloneDeep(treeTemplates).map(({
-                    name, tree
+                    name, tree, ...rest
                 }) => ({
                     name,
-                    tree: removeBase64(tree)
+                    tree: removeBase64(tree),
+                    ...rest
                 })))
             });
             return {

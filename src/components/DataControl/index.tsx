@@ -5,7 +5,7 @@ import LocalFileUploader from "../LocalFileUploader";
 import {useDispatch, useSelector} from 'react-redux';
 import store, { IPhone, ITreeNode, ITemplate } from '../../store';
 import _ from 'lodash';
-import { toPng } from 'html-to-image';
+import { toPng, toCanvas } from 'html-to-image';
 const { Option } = Select;
 const baseClassName = 'data-control';
 
@@ -42,10 +42,13 @@ const MyComponent: React.FC<Props> = ({
         const tree = store.getState().trees.tree;
         if (!templateName) message.warning('请输入模板名称');
         if (inputRef.current) {
+            const { phoneSize } = store.getState().phones;
             treeTemplates.push({
                 name: templateName,
                 id: Date.now(),
                 tree,
+                width: phoneSize && phoneSize?.width || 0,
+                height: phoneSize && phoneSize?.height || 0,
             })
             dispatch({
               type: 'updateLayoutTreeTemplates',
@@ -67,6 +70,10 @@ const MyComponent: React.FC<Props> = ({
                 type: 'updateLayoutTree',
                 payload: _.cloneDeep(selectedTree.tree)
             })
+            window.localStorage.setItem('currentSize', JSON.stringify({
+                width: selectedTree.width,
+                height: selectedTree.height,
+            }))
             setTimeout(() => {
             //     页面刷新
                 window.location.reload();
@@ -108,6 +115,9 @@ const MyComponent: React.FC<Props> = ({
         //     }
         // }
         if (!editor) return;
+        toCanvas(editor).then((canvas) => {
+            document.body.appendChild(canvas);
+        })
         toPng(editor).then(function (dataUrl) {
             const downloadLink = document.createElement('a');
             downloadLink.setAttribute('download', 'my-image.png');
