@@ -5,7 +5,7 @@ import LocalFileUploader from "../LocalFileUploader";
 import {useDispatch, useSelector} from 'react-redux';
 import store, { IPhone, ITemplate } from '../../store';
 import _ from 'lodash';
-import { toPng, toCanvas } from 'html-to-image';
+import { toPng } from 'html-to-image';
 const { Option } = Select;
 const baseClassName = 'data-control';
 interface Props {}
@@ -88,9 +88,6 @@ const MyComponent: React.FC<Props> = () => {
         })
         const editor = document.getElementById('phoneEditor')!;
         if (!editor) return;
-        toCanvas(editor).then((canvas) => {
-            document.body.appendChild(canvas);
-        })
         toPng(editor).then(function (dataUrl) {
             const downloadLink = document.createElement('a');
             downloadLink.setAttribute('download', 'my-image.png');

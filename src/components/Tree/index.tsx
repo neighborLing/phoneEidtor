@@ -157,9 +157,9 @@ const LayoutTree: React.FC = () => {
 
     const handleLockLayout = (key: string) => {
         const curItem = findCurrentNode(tree, key)
-        if (curItem) {
+        if (curItem && curItem.position) {
             // @ts-ignore
-            curItem.isLock = !curItem.isLock
+            curItem.position.isLock = !curItem.position?.isLock
             const treeData = _.cloneDeep(tree)
             store.dispatch({
                 type: 'updateLayoutTree',
@@ -191,7 +191,7 @@ const formatToTreeNode = (data: DataNode[]) => {
             }}>
                     {
                         // @ts-ignore
-                        item?.isLock ? <LockOutlined/> : <UnlockOutlined/>
+                        item?.position?.isLock ? <LockOutlined/> : <UnlockOutlined/>
                     }
                 </span>
         </div>

@@ -39,7 +39,8 @@ function initPosition(position: IPosition | undefined) {
         color = '#fff',
         lineHeight = 1,
         url = '',
-        base64 = ''
+        base64 = '',
+        isLock = false
     } = position || {};
 
     return {
@@ -56,7 +57,8 @@ function initPosition(position: IPosition | undefined) {
         color,
         lineHeight,
         url,
-        base64
+        base64,
+        isLock
     }
 }
 
@@ -73,7 +75,6 @@ const ContentBox = (props: IProps) => {
     const defaultPosition = initPosition(position)
     const [curPosition, setCurrentPosition] = React.useState<IPosition>(defaultPosition);
     const {contentBoxKey, position: boxPosition} = useSelector(state => state.contentBox);
-    const {tree} = useSelector((state) => state.trees);
 
     const setContentBoxKey = (e) => {
         e.stopPropagation()
@@ -102,7 +103,7 @@ const ContentBox = (props: IProps) => {
         const positionData = contentBoxKey === key ? boxPosition : defaultPosition;
 
         setCurrentPosition(initPosition(positionData))
-    }, [contentBoxKey, boxPosition])
+    }, [contentBoxKey, boxPosition, position])
 
     const selected = useMemo(() => {
         return key === contentBoxKey;
@@ -141,7 +142,7 @@ const ContentBox = (props: IProps) => {
 
     const handleMouseMove = useCallback((e) => {
         e.stopPropagation();
-        if (contentBoxKey !== key) return
+        if (contentBoxKey !== key || curPosition.isLock) return
         if (boxRef.current) {
             // 鼠标在屏幕中的位置可以使用
             const newX = +mouseEnterPosition.beforeLeft + e.clientX - +mouseEnterPosition.x;

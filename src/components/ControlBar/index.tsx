@@ -103,10 +103,10 @@ const MyForm: React.FC = () => {
                     type: 'updateLayoutTree',
                     payload: _.cloneDeep(tree)
                 })
-                // store.dispatch({
-                //     type: 'setContentBoxKey',
-                //     payload: ''
-                // })
+                store.dispatch({
+                    type: 'setContentBoxKey',
+                    payload: ''
+                })
             }
         }
 

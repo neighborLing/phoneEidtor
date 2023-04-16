@@ -13,4 +13,5 @@ export interface IPosition {
     lineHeight?: number
     url?: string
     base64?: string
+    isLock?: boolean
 }

@@ -11,6 +11,10 @@ const Editor = (props: IProps) => {
     const { forExport = false } = props
     const { tree } = useSelector((state: any) => state.trees);
 
+    useEffect(() => {
+        console.log('editor render')
+    }, [tree])
+
     const children = useMemo(() => {
         const root = tree[0];
         const { children = [] } = root || {};
