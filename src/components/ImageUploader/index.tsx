@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {getBase64} from '../../utils';
+import {message} from "antd";
+import {blurBase64} from "../../utils/image";
 
 export interface IImageInfo {
     name: string;
@@ -13,9 +15,10 @@ export interface IImageInfo {
 interface Props {
     onChange: (imageInfos: IImageInfo[]) => void;
     multiple?: boolean;
+    setLoading?: (loading: boolean) => void;
 }
 
-const ImageUploader: React.FC<Props> = ({ onChange, multiple = true }) => {
+const ImageUploader: React.FC<Props> = ({ onChange, multiple = true, setLoading }) => {
     const [files, setFiles] = useState<File[]>([]);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +41,10 @@ const ImageUploader: React.FC<Props> = ({ onChange, multiple = true }) => {
             formData.append('file', file);
             try {
                 // 上传文件
+                setLoading && setLoading(true);
                 const res = await axios.post('http://47.108.29.87:3000/upload', formData);
+                setLoading && setLoading(false);
+                message.success('上传成功');
                 console.log('res', res);
                 const url = `http://47.108.29.87:3000${res.data}`;
                 // 获取图片宽高

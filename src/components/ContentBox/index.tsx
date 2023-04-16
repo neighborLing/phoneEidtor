@@ -287,7 +287,7 @@ const ContentBox = (props: IProps) => {
         }
         {
             nodeType === 'heart' ? (
-                <div className='heart' style={{
+                <div className={['heart', isImageBackground ? 'b-filter' : ''].join(' ')} style={{
                     width,
                     height,
                     background: curBackground,

@@ -98,7 +98,7 @@ const Index = () => {
                     showExportBox ? <div style={{
                         width: '10px',
                         height: '10px',
-                        // overflow: "hidden"
+                        overflow: "hidden"
                     }}>
                         <div
                             style={{

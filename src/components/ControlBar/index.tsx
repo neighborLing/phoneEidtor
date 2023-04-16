@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from "react";
-import {Form, Input, Button, Select} from "antd";
+import {Form, Input, Button, Select, Spin} from "antd";
 import './index.less'
 import {IPosition} from "../../store/index.d";
 import {useSelector} from "react-redux";
@@ -31,6 +31,7 @@ const MyForm: React.FC = () => {
         // const { contentBoxKey, position } = store.getState().contentBox;
         const {contentBoxKey, position} = useSelector((state) => state.contentBox);
         const {tree} = useSelector((state) => state.trees);
+        const [loading, setLoading] = React.useState(false);
 
         useEffect(() => {
             form.setFieldsValue(position);
@@ -128,63 +129,65 @@ const MyForm: React.FC = () => {
                 {
                     position.isLock ? null : <div>
                         {
-                            nodeType === 'image' ? <Form form={form} onValuesChange={onValuesChange}>
-                                <Form.Item label="宽度" name="width">
-                                    <Input/>
-                                </Form.Item>
-                                <Form.Item>
-                                    <Button onClick={() => {
-                                        const height = form.getFieldValue('height');
-                                        const ratio = form.getFieldValue('ratio');
-                                        onValuesChange({
-                                            width: height / ratio
-                                        })}
-                                    }>高度不变，按原比例调整宽度</Button>
-                                </Form.Item>
+                            nodeType === 'image' ? <Spin spinning={loading}>
+                                <Form form={form} onValuesChange={onValuesChange}>
+                                    <Form.Item label="宽度" name="width">
+                                        <Input/>
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button onClick={() => {
+                                            const height = form.getFieldValue('height');
+                                            const ratio = form.getFieldValue('ratio');
+                                            onValuesChange({
+                                                width: height / ratio
+                                            })}
+                                        }>高度不变，按原比例调整宽度</Button>
+                                    </Form.Item>
 
-                                <Form.Item label="高度" name="height">
-                                    <Input/>
-                                </Form.Item>
-                                <Form.Item>
-                                    <Button onClick={() => {
-                                        const width = form.getFieldValue('width');
-                                        const ratio = form.getFieldValue('ratio');
-                                        onValuesChange({
-                                            height: width * ratio
-                                        })}
-                                    }>宽度不变，按原比例调整高度</Button>
-                                </Form.Item>
+                                    <Form.Item label="高度" name="height">
+                                        <Input/>
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button onClick={() => {
+                                            const width = form.getFieldValue('width');
+                                            const ratio = form.getFieldValue('ratio');
+                                            onValuesChange({
+                                                height: width * ratio
+                                            })}
+                                        }>宽度不变，按原比例调整高度</Button>
+                                    </Form.Item>
 
-                                <Form.Item label="左边距" name="left">
-                                    <Input/>
-                                </Form.Item>
+                                    <Form.Item label="左边距" name="left">
+                                        <Input/>
+                                    </Form.Item>
 
-                                <Form.Item label="上边距" name="top">
-                                    <Input/>
-                                </Form.Item>
+                                    <Form.Item label="上边距" name="top">
+                                        <Input/>
+                                    </Form.Item>
 
-                                <Form.Item label="旋转角度" name="remote">
-                                    <Input type="number"/>
-                                </Form.Item>
+                                    <Form.Item label="旋转角度" name="remote">
+                                        <Input type="number"/>
+                                    </Form.Item>
 
-                                <Form.Item label="图片选择" name="background">
-                                    <Button>
-                                        <ImageUploader onChange={handleImageUpload} multiple={false}/>
-                                    </Button>
-                                </Form.Item>
+                                    <Form.Item label="图片选择" name="background">
+                                        <Button>
+                                            <ImageUploader onChange={handleImageUpload} multiple={false} setLoading={setLoading} />
+                                        </Button>
+                                    </Form.Item>
 
-                                <Form.Item label="高宽比" name="ratio" hidden>
-                                    <Input readOnly/>
-                                </Form.Item>
+                                    <Form.Item label="高宽比" name="ratio" hidden>
+                                        <Input readOnly/>
+                                    </Form.Item>
 
-                                <Form.Item label="url" name="url" hidden>
-                                    <Input readOnly/>
-                                </Form.Item>
+                                    <Form.Item label="url" name="url" hidden>
+                                        <Input readOnly/>
+                                    </Form.Item>
 
-                                <Form.Item label="base64" name="base64" hidden>
-                                    <Input readOnly/>
-                                </Form.Item>
-                            </Form> : null
+                                    <Form.Item label="base64" name="base64" hidden>
+                                        <Input readOnly/>
+                                    </Form.Item>
+                                </Form>
+                            </Spin> : null
                         }
                         {
                             nodeType === 'text' ? <Form form={form} onValuesChange={onValuesChange}>

@@ -1,5 +1,5 @@
 import React, {useRef, useState} from "react";
-import {Button,Input,Modal,message,Select} from "antd";
+import {Button,Input,Modal,message,Select,Spin} from "antd";
 import "./index.less";
 import LocalFileUploader from "../LocalFileUploader";
 import {useDispatch, useSelector} from 'react-redux';
@@ -17,6 +17,7 @@ const MyComponent: React.FC<Props> = () => {
     const inputRef = useRef(null);
     const [selectedTemplate, setSelectedTemplate] = useState('');
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
     const phonesTextHandler = (text: string) => {
         const phones = text.split('\n');
 
@@ -57,13 +58,16 @@ const MyComponent: React.FC<Props> = () => {
     }
 
     const selectTree = (value: string) => {
+        const tree = store.getState().trees.tree;
         const { phoneSize = {} } = store.getState().phones;
         if (!phoneSize.width) {
             return message.warning('请先选择手机尺寸')
         }
-        const cm = confirm('确定要覆盖当前布局吗？');
-        if (!cm) {
-            return setSelectedTemplate('');
+        if (tree[0].children.length) {
+            const cm = confirm('确定要覆盖当前布局吗？');
+            if (!cm) {
+                return setSelectedTemplate('');
+            }
         }
         const selectedTree = treeTemplates.find((treeTemplate: ITemplate) => treeTemplate.name === value);
         if (selectedTree) {
@@ -89,6 +93,7 @@ const MyComponent: React.FC<Props> = () => {
     }
 
     const onExportImage = async () => {
+
         await new Promise((resolve) => {
             store.dispatch({
                 type: 'showExportBox'
@@ -101,6 +106,7 @@ const MyComponent: React.FC<Props> = () => {
         })
         const editor = document.getElementById('phoneEditor')!;
         if (!editor) return;
+        setLoading(true);
         toPng(editor).then(function (dataUrl) {
             const downloadLink = document.createElement('a');
             downloadLink.setAttribute('download', 'my-image.png');
@@ -109,6 +115,7 @@ const MyComponent: React.FC<Props> = () => {
             store.dispatch({
                 type: 'hideExportBox'
             })
+            setLoading(false);
         })
     }
 
@@ -136,7 +143,9 @@ const MyComponent: React.FC<Props> = () => {
                     </Option>
                 ))}
             </Select>
-            <div className={`${baseClassName}-button`}><Button onClick={onExportImage}>导出图片</Button></div>
+            <Spin spinning={loading} >
+                <div className={`${baseClassName}-button`}><Button onClick={onExportImage}>导出图片</Button></div>
+            </Spin>
             <Modal
                 title="保存模板"
                 visible={modalVisible}
