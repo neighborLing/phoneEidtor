@@ -224,10 +224,7 @@ const ContentBox = (props: IProps) => {
         document.addEventListener('mouseup', handleRotateMouseUp);
     }
     const isImageBackground = children && children.length && children[0].nodeType === 'image'
-    const imageBackground = isImageBackground ? `${
-        forExport ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%').replace(children[0]?.position?.url || '', children[0]?.position?.base64 || '') :
-            children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%')
-    }` : 'none'
+    const imageBackground = isImageBackground ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%') : 'none'
     console.log('imageBackground', imageBackground)
 
     const rate = forExport ? 3 : 1;
@@ -236,7 +233,7 @@ const ContentBox = (props: IProps) => {
     const width = `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : +curPosition.width * rate + 'px'}`;
     const height = `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : +curPosition.height * rate + 'px'}`;
     let curBackground = isImageBackground ? imageBackground : curPosition.background;
-    curBackground = forExport ? curBackground.replace(curPosition?.url || '', curPosition?.base64 || '') : curBackground;
+    curBackground = curBackground;
     if (forExport && isImageBackground) {
         console.log('curPosition', curPosition)
         console.log('curBackground', curBackground)

@@ -42,11 +42,12 @@ const ImageUploader: React.FC<Props> = ({ onChange, multiple = true, setLoading 
             try {
                 // 上传文件
                 setLoading && setLoading(true);
-                const res = await axios.post('http://47.108.29.87:3000/upload', formData);
+                // const res = await axios.post('http://47.108.29.87:3000/upload', formData);
                 setLoading && setLoading(false);
                 message.success('上传成功');
-                console.log('res', res);
-                const url = `http://47.108.29.87:3000${res.data}`;
+                // console.log('res', res);
+                // const url = `http://47.108.29.87:3000${res.data}`;
+                const url = URL.createObjectURL(file)
                 // 获取图片宽高
                 const img = new Image();
                 img.src = url;
