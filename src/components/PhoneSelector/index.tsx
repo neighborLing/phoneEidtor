@@ -102,8 +102,8 @@ const Index = () => {
                     }}>
                         <div
                             style={{
-                                width: getSelectedPhoneSize().width,
-                                height: getSelectedPhoneSize().height,
+                                width: getSelectedPhoneSize().width / window.devicePixelRatio,
+                                height: getSelectedPhoneSize().height / window.devicePixelRatio,
                                 backgroundColor: '#ccc',
                                 marginTop: 10,
                             }}

@@ -35,13 +35,14 @@ const MyComponent: React.FC<Props> = () => {
     }
     const onSaveTemplate = () => {
         const tree = store.getState().trees.tree;
+        const newTree = JSON.parse(JSON.stringify(tree).replace(/blob:http:\/\/localhost:5173\/[a-z0-9-]+/g, 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAEALAAAAAABAAEAAAICRAEAOw=='));
         if (!templateName) message.warning('请输入模板名称');
         if (inputRef.current) {
             const { phoneSize } = store.getState().phones;
             treeTemplates.push({
                 name: templateName,
                 id: Date.now(),
-                tree,
+                tree: newTree,
                 width: phoneSize && phoneSize?.width || 0,
                 height: phoneSize && phoneSize?.height || 0,
             })
@@ -119,6 +120,23 @@ const MyComponent: React.FC<Props> = () => {
         })
     }
 
+    const handleDelTemplate = (e, temp) => {
+        e.stopPropagation()
+        const cm = confirm('确定要删除该模板吗？');
+        if (!cm) return;
+        console.log(temp)
+        const treeTemplates = store.getState().trees.treeTemplates;
+        const newTreeTemplates = treeTemplates.filter((treeTemplate: ITemplate) => treeTemplate.id !== temp.id);
+
+        dispatch({
+            type: 'updateLayoutTreeTemplates',
+            payload: {
+                treeTemplates: newTreeTemplates,
+                save: true
+            }
+        })
+    }
+
     return (
         <div className={baseClassName}>
             <LocalFileUploader label='上传手机类型' afterUpload={(text) => {
@@ -139,7 +157,18 @@ const MyComponent: React.FC<Props> = () => {
             }} onChange={selectTree} value={selectedTemplate}>
                 {treeTemplates.map((treeTemplate: ITemplate) => (
                     <Option key={treeTemplate.name} treeTemplate={treeTemplate.name}>
-                        {treeTemplate.name}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                        }}>
+                            <span>{treeTemplate.name}</span>
+                            <span style={{
+                                color: 'red',
+                                cursor: 'pointer',
+                            }} onClick={(e) => handleDelTemplate(e, treeTemplate)}>
+                                ✖
+                            </span>
+                        </div>
                     </Option>
                 ))}
             </Select>

@@ -223,11 +223,12 @@ const ContentBox = (props: IProps) => {
         document.addEventListener('mousemove', handleRotateMouseMove);
         document.addEventListener('mouseup', handleRotateMouseUp);
     }
-    const isImageBackground = children && children.length && children[0].nodeType === 'image'
+    // const isImageBackground = children && children.length && children[0].nodeType === 'image'
+    const isImageBackground = false
     const imageBackground = isImageBackground ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%') : 'none'
     console.log('imageBackground', imageBackground)
 
-    const rate = forExport ? 3 : 1;
+    const rate = forExport ? (3  / window.devicePixelRatio) : 1;
 
     const child = children.map((child: IProps) => <ContentBox {...child} boxKey={child.key} forExport={forExport}/>)
     const width = `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : +curPosition.width * rate + 'px'}`;
