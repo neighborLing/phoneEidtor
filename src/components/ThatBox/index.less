@@ -1,0 +1,74 @@
+.rectangle {
+  position: fixed;
+  // 边的类型 solid dashed dotted double groove ridge inset outset
+  border: 2px dashed #3d89d0;
+  z-index: 9999;
+  cursor: pointer;
+
+  .circle {
+    border: 1px solid #000c17;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  .top {
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .bottom {
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .left {
+    top: 50%;
+    left: -5px;
+    transform: translateY(-50%);
+  }
+
+  .right {
+    top: 50%;
+    right: -5px;
+    transform: translateY(-50%);
+  }
+
+  .topLeft {
+    top: -5px;
+    left: -5px;
+  }
+
+  .topRight {
+    top: -5px;
+    right: -5px;
+  }
+
+  .bottomLeft {
+    bottom: -5px;
+    left: -5px;
+  }
+
+  .bottomRight {
+    bottom: -5px;
+    right: -5px;
+  }
+
+  .rotationPoint {
+    position: absolute;
+    top: 50%;
+    right: -10px;
+    transform: translate(300%, -50%) rotate(45deg);
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: #97ec63;
+    border: 1px solid #000c17;
+    cursor: pointer;
+  }
+}

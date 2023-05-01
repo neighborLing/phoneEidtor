@@ -112,8 +112,11 @@ const ContentBox = (props: IProps) => {
     }
 
     const handleMouseDown = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key) return
+        if (contentBoxKey === key) {
+            e.stopPropagation();
+        } else {
+            return
+        }
 
         if (boxRef.current) {
             // 判断是否为右下角的拖拽点
@@ -134,8 +137,11 @@ const ContentBox = (props: IProps) => {
     };
 
     const handleMouseMove = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key || curPosition.isLock) return
+        if (contentBoxKey !== key || curPosition.isLock) {
+            return
+        } else {
+            e.stopPropagation();
+        }
         if (boxRef.current) {
             // 鼠标在屏幕中的位置可以使用
             const newX = +mouseEnterPosition.beforeLeft + e.clientX - +mouseEnterPosition.x;
@@ -150,14 +156,20 @@ const ContentBox = (props: IProps) => {
     }
 
     const handleMouseUp = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key) return
+        if (contentBoxKey !== key) {
+            return
+        } else {
+            e.stopPropagation();
+        }
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
     };
     const handleResizeMouseUp = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key || !boxRef.current) return
+        if (contentBoxKey !== key || !boxRef.current) {
+            return
+        } else {
+            e.stopPropagation();
+        }
         const {width, height} = boxRef.current.getBoundingClientRect();
         const newPosition = {
             ...position,
@@ -185,9 +197,12 @@ const ContentBox = (props: IProps) => {
     }
 
     const handleRotateMouseMove = (e) => {
-        e.stopPropagation()
         //     获取盒子中点
-        if (contentBoxKey !== key || !boxRef.current) return
+        if (contentBoxKey !== key || !boxRef.current) {
+            return
+        } else {
+            e.stopPropagation()
+        }
         const {left, top, width, height} = boxRef.current.getBoundingClientRect();
         const centerPoint = {
             x: left + width / 2,
@@ -207,57 +222,54 @@ const ContentBox = (props: IProps) => {
             payload: newPosition,
         });
         updateTree(newPosition)
-
-        console.log(angle)
     }
     const handleRotateMouseUp = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key || !boxRef.current) return
+        if (contentBoxKey !== key || !boxRef.current) {
+            return
+        } else {
+            e.stopPropagation();
+        }
         document.removeEventListener('mousemove', handleRotateMouseMove);
         document.removeEventListener('mouseup', handleRotateMouseUp);
     }
 
     const handleRotateMouseDown = (e) => {
-        e.stopPropagation();
-        if (contentBoxKey !== key || !boxRef.current) return
+        if (contentBoxKey !== key || !boxRef.current) {
+            return
+        } else {
+            e.stopPropagation();
+        }
         document.addEventListener('mousemove', handleRotateMouseMove);
         document.addEventListener('mouseup', handleRotateMouseUp);
     }
     // const isImageBackground = children && children.length && children[0].nodeType === 'image'
     const isImageBackground = false
     const imageBackground = isImageBackground ? children[0]?.position?.background?.replace('0% 0% / 100% 100%', '50% 50% / 200% 200%') : 'none'
-    console.log('imageBackground', imageBackground)
-
     const rate = forExport ? (3  / window.devicePixelRatio) : 1;
-
     const child = children.map((child: IProps) => <ContentBox {...child} boxKey={child.key} forExport={forExport}/>)
-    const width = `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : +curPosition.width * rate + 'px'}`;
-    const height = `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : +curPosition.height * rate + 'px'}`;
+    const width = `${/[^0-9\.-]/.test(curPosition.width + '') ? curPosition.width : Math.ceil(+curPosition.width * rate) + 'px'}`;
+    const height = `${/[^0-9\.-]/.test(curPosition.height + '') ? curPosition.height : Math.ceil(+curPosition.height * rate) + 'px'}`;
     let curBackground = isImageBackground ? imageBackground : curPosition.background;
     curBackground = curBackground;
-    if (forExport && isImageBackground) {
-        console.log('curPosition', curPosition)
-        console.log('curBackground', curBackground)
-    }
-    // onMouseDown={handleMouseDown}
+
     return <div ref={boxRef}
+                id={selected ? 'selectedBox' : ''}
                 className={[cls, selected ? `${cls}-selected` : '', isImageBackground ? 'b-filter' : ''].join(' ')}
-                onMouseDown={handleMouseDown}
-                onClick={setContentBoxKey} style={{
+                style={{
         width,
         height,
-        left: `${/[^0-9\.-]/.test(curPosition.left + '') ? curPosition.left : curPosition.left * rate + 'px'}`,
-        top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : curPosition.top * rate + 'px'}`,
+        left: `${/[^0-9\.-]/.test(curPosition.left + '') ? curPosition.left : Math.ceil(curPosition.left * rate) + 'px'}`,
+        top: `${/[^0-9\.-]/.test(curPosition.top + '') ? curPosition.top : Math.ceil(curPosition.top * rate) + 'px'}`,
         transform: `rotate(${curPosition.remote}deg)`,
         background: !['triangle', 'lozenge', 'heart'].includes(nodeType) ? curBackground : '',
         // transition: 'all 0.05s',
-        resize: contentBoxKey === key && !curPosition.isLock && +curPosition.remote === 0 ? 'both' : 'none',
+        // resize: contentBoxKey === key && !curPosition.isLock && +curPosition.remote === 0 ? 'both' : 'none',
         borderRadius: ['roundedRectangle', 'rotundity'].includes(nodeType) ? nodeType === 'roundedRectangle' ? (forExport ? '60px' : '20px') : '9999px' : '0px',
         zIndex,
     }}>
-        {
-            selected && !curPosition.isLock ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null
-        }
+        {/*{*/}
+        {/*    selected && !curPosition.isLock ? <div className={'rotate-box'} onClick={handleRotateMouseDown}></div> : null*/}
+        {/*}*/}
         {
             nodeType === 'triangle' ? (
                 <div className={['triangle', isImageBackground ? 'b-filter' : ''].join(' ')} style={{

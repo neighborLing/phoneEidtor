@@ -1,17 +1,18 @@
 import {Tree, Modal, Form, Input, Select, message, Button, Spin} from 'antd';
 import type {DataNode, TreeProps} from 'antd/es/tree';
 import React, {useState, useEffect, ReactElement} from 'react';
-import {PlusOutlined, DeleteOutlined, LockOutlined, UnlockOutlined, CopyOutlined} from '@ant-design/icons';
+import {PlusOutlined, DeleteOutlined, LockOutlined, UnlockOutlined, CopyOutlined, ArrowUpOutlined, ArrowDownOutlined} from '@ant-design/icons';
 import type {MenuProps} from 'antd';
 import {Dropdown, Space} from 'antd';
 import store from '../../store';
-import _ from 'lodash';
+import _, {some} from 'lodash';
 import './index.less';
 import {useSelector} from 'react-redux';
 import {findParentNode, findCurrentNode} from '../../utils/tree';
 import ImageUploader from "../ImageUploader";
 import {IImageInfo} from "../ImageUploader";
 import {IPosition} from '../../store/index.d';
+import {display} from "html2canvas/dist/types/css/property-descriptors/display";
 
 const cls = 'layout-tree'
 const defaultData: DataNode[] = [];
@@ -74,7 +75,6 @@ const LayoutTree: React.FC = () => {
         }, [contentBoxKey])
 
         useEffect(() => {
-            console.log('tree chagne')
             const gData = formatToTreeNode(_.cloneDeep(tree))
             handleTreeChange(gData)
         }, [tree])
@@ -166,6 +166,10 @@ const LayoutTree: React.FC = () => {
                     type: 'updateLayoutTree',
                     payload: treeData
                 })
+                store.dispatch({
+                    type: 'setPosition',
+                    payload: _.cloneDeep(curItem.position)
+                })
             }
         }
 
@@ -185,7 +189,6 @@ const LayoutTree: React.FC = () => {
 
         const handleDelete = (key: string) => {
             const parentNode = findParentNode(tree, key)
-            console.log('parentNode', parentNode)
             if (parentNode) {
                 parentNode.children = parentNode.children?.filter(item => item.key !== key)
                 const treeData = _.cloneDeep(tree)
@@ -205,6 +208,40 @@ const LayoutTree: React.FC = () => {
                 cloneItem.position.left += 10
                 cloneItem.position.top += 10
                 if (curItem) {
+                    store.dispatch({
+                        type: 'updateLayoutTree',
+                        payload: _.cloneDeep(tree)
+                    })
+                }
+            }
+        }
+        
+        const handleUp = (key: string) => {
+            const curItem = findCurrentNode(tree, key)
+            const parentItem = findParentNode(tree, key)
+            if (curItem && parentItem && parentItem.children) {
+                const index = parentItem.children.findIndex(item => item.key === key)
+                if (index > 0) {
+                    const prevItem = parentItem.children[index - 1]
+                    parentItem.children[index - 1] = curItem
+                    parentItem.children[index] = prevItem
+                    store.dispatch({
+                        type: 'updateLayoutTree',
+                        payload: _.cloneDeep(tree)
+                    })
+                }
+            }
+        }
+        
+        const handleDown = (key: string) => {
+            const curItem = findCurrentNode(tree, key)
+            const parentItem = findParentNode(tree, key)
+            if (curItem && parentItem && parentItem.children) {
+                const index = parentItem.children.findIndex(item => item.key === key)
+                if (index < parentItem.children.length - 1) {
+                    const nextItem = parentItem.children[index + 1]
+                    parentItem.children[index + 1] = curItem
+                    parentItem.children[index] = nextItem
                     store.dispatch({
                         type: 'updateLayoutTree',
                         payload: _.cloneDeep(tree)
@@ -253,6 +290,18 @@ const LayoutTree: React.FC = () => {
                             }} onClick={() => handleDelete(item.key)}>
                                 <DeleteOutlined />
                             </span>
+                            <span style={{
+                                marginLeft: '10px',
+                                color: 'purple'
+                            }}  onClick={() => handleUp(item.key)}>
+                                <ArrowUpOutlined />
+                            </span>
+                            <span style={{
+                                marginLeft: '10px',
+                                color: 'purple'
+                            }}  onClick={() => handleDown(item.key)}>
+                                <ArrowDownOutlined />
+                            </span>
                         </React.Fragment>
                     }
                 </div>
@@ -277,6 +326,10 @@ const LayoutTree: React.FC = () => {
         const [form] = Form.useForm();
 
         const showModal = (type: 'add' | 'addChild' | 'delete') => {
+            store.dispatch({
+                type: 'setContentBoxKey',
+                payload: ''
+            })
             setModalVisible(true);
             form.resetFields();
             form.setFieldValue('nodeType', 'image')
@@ -364,7 +417,8 @@ const LayoutTree: React.FC = () => {
                 remote: 0,
                 fontFamily: 'ChannelSlanted2',
                 fontSize: 14,
-                color: '#000000',
+                // 随机颜色
+                color: '#' + Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, '0'),
                 content: 'placeholder'
             }
             const nodeName = shapeOptions.find(i => i.key === nodeType)?.value || '未知'
@@ -402,7 +456,7 @@ const LayoutTree: React.FC = () => {
                     return message.info('没找到')
                 }
                 curItem.children = curItem.children || []
-                curItem.children = [...newItems, ...curItem.children]
+                curItem.children = [...curItem.children, ...newItems]
             }
 
             const treeData = _.cloneDeep(tree)
@@ -422,6 +476,10 @@ const LayoutTree: React.FC = () => {
             const cm = confirm('确认需要重置吗？')
             if (!cm) return
             createNewTree()
+            store.dispatch({
+                type: 'setContentBoxKey',
+                payload: ''
+            })
         }
 
         return (

@@ -5,16 +5,16 @@ import Tree from "./components/Tree";
 import {TreeItem} from "./components/Tree/type";
 import DataControl from "./components/DataControl";
 import store, {addZIndex} from "./store";
-import {Provider} from "react-redux";
+import {Provider, useSelector} from "react-redux";
 import ControlBar from "./components/ControlBar";
 import axios from "axios";
+import ThatBox from "./components/ThatBox";
 
 window.$store = store;
 
 function App() {
     const fetchPhone = async () => {
         const phones = await axios.get('http://47.108.29.87:3000/phones/content');
-        console.log('phones', phones)
         store.dispatch({
             type: 'updatePhones',
             payload: {
@@ -37,6 +37,7 @@ function App() {
         fetchPhone()
         fetchTemplate()
     }, [])
+    
     return (
         <Provider store={store}>
             <DataControl />

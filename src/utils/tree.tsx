@@ -6,9 +6,9 @@ import store, {ITreeNode} from "../store/index";
 
 export const findParentNode = (data: DataNode[], key: React.Key) => {
     let result: DataNode | undefined
-    data.forEach((item) => {
+    data.some((item) => {
         if (item.children) {
-            item.children.some((child) => {
+            return item.children.some((child) => {
                 if (child.key === key) {
                     result = item
                     return true
@@ -19,6 +19,7 @@ export const findParentNode = (data: DataNode[], key: React.Key) => {
                 }
             })
         }
+        return false
     })
     return result
 }

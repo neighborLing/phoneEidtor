@@ -12,8 +12,6 @@ fs.readFile(filePath, 'utf-8', (err, text) => {
     while ((match = regex.exec(text))) {
         hrefs.push(match[1]);
     }
-
-    console.log(hrefs);
 });
 
 

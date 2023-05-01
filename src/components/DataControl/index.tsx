@@ -124,7 +124,6 @@ const MyComponent: React.FC<Props> = () => {
         e.stopPropagation()
         const cm = confirm('确定要删除该模板吗？');
         if (!cm) return;
-        console.log(temp)
         const treeTemplates = store.getState().trees.treeTemplates;
         const newTreeTemplates = treeTemplates.filter((treeTemplate: ITemplate) => treeTemplate.id !== temp.id);
 

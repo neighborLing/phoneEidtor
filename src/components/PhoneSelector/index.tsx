@@ -4,7 +4,9 @@ import './index.less';
 import {useSelector} from 'react-redux';
 import Editor from "../Editor";
 import store from "../../store/index";
-import { handleResizeTree } from '../../utils/tree';
+import {findCurrentNode, handleResizeTree} from '../../utils/tree';
+import ThatBox from "../ThatBox";
+import _ from 'lodash';
 
 const {Option} = Select;
 const baseClassName = 'phone-selector';
@@ -25,6 +27,8 @@ const Index = () => {
     const { phones: phoneTypes } = useSelector((state: any) => state.phones);
     const { showExportBox } = useSelector((state: any) => state.exportBox);
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(emptyPhone);
+    const { contentBoxKey, position } = useSelector((state: any) => state.contentBox);
+    
     useEffect(() => {
         setSelectedPhone(emptyPhone);
     }, [phoneTypes])
@@ -74,6 +78,44 @@ const Index = () => {
         return {width, height};
     };
 
+    const keyListener = (e) => {
+        if (contentBoxKey && !contentBoxKey.includes('root') && ['w', 's', 'a', 'd'].includes(e.key)) {
+            // 按下的是wsad中的一个
+            const tree = store.getState().trees.tree;
+            const curItem = findCurrentNode(tree, contentBoxKey)
+            const position = curItem.position;
+            switch (e.key) {
+                case 'w':
+                    position.top -= 1;
+                    break;
+                case 's':
+                    position.top += 1;
+                    break;
+                case 'a':
+                    position.left -= 1;
+                    break;
+                case 'd':
+                    position.left += 1;
+                    break;
+            }
+            store.dispatch({
+                type: 'updateLayoutTree',
+                payload: _.cloneDeep(tree)
+            })
+            store.dispatch({
+                type: 'setPosition',
+                payload: _.cloneDeep(position)
+            })
+        }
+    }
+    useEffect(() => {
+        document.addEventListener('keydown', keyListener)
+        
+        return () => {
+            document.removeEventListener('keydown', keyListener)
+        }
+    }, [contentBoxKey])
+    
     return (
         <div className={baseClassName}>
             <div>
@@ -102,8 +144,8 @@ const Index = () => {
                     }}>
                         <div
                             style={{
-                                width: getSelectedPhoneSize().width / window.devicePixelRatio,
-                                height: getSelectedPhoneSize().height / window.devicePixelRatio,
+                                width: Math.ceil(getSelectedPhoneSize().width / window.devicePixelRatio),
+                                height: Math.ceil(getSelectedPhoneSize().height / window.devicePixelRatio),
                                 backgroundColor: '#ccc',
                                 marginTop: 10,
                             }}
@@ -113,6 +155,9 @@ const Index = () => {
                     </div> : null
                 }
             </div>
+            {
+                contentBoxKey && !contentBoxKey.includes('root') && <ThatBox />
+            }
         </div>
     );
 };

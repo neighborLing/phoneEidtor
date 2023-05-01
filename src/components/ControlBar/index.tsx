@@ -5,7 +5,7 @@ import {IPosition} from "../../store/index.d";
 import {useSelector} from "react-redux";
 import store from "../../store/index";
 import {findCurrentNode} from "../../utils/tree";
-import _, {isNumber} from 'lodash';
+import _, {ceil, isNumber} from 'lodash';
 import {SketchPicker} from 'react-color';
 import ImageUploader from "../ImageUploader";
 import {getBase64} from "../../utils";
@@ -34,17 +34,27 @@ const MyForm: React.FC = () => {
         const [loading, setLoading] = React.useState(false);
 
         useEffect(() => {
-            form.setFieldsValue(position);
-        }, [position])
-
-        useEffect(() => {
-            form.setFieldsValue(position);
-        }, [contentBoxKey])
+            const {
+                width,
+                height,
+                top,
+                left,
+                remote
+            } = position;
+            
+            form.setFieldsValue({
+                ...position,
+                width: Math.floor(width),
+                height: Math.floor(height),
+                top: Math.floor(top),
+                left: Math.floor(left),
+                remote: Math.floor(remote),
+            });
+        }, [position, contentBoxKey])
 
         const onValuesChange = (values: {
             [K in keyof IPosition]?: IPosition[K]
         }, submit = true) => {
-            console.log(values)
             const {position} = store.getState().contentBox;
             const valueKeys = Object.keys(values);
             if (valueKeys.length === 1 && ['width', 'height'].includes(valueKeys[0]) && nodeType === 'image') {
@@ -108,7 +118,6 @@ const MyForm: React.FC = () => {
         }
 
         const handleImageUpload = async (val) => {
-            console.log('va11', val)
             const file = val[0];
             if (!file) return;
             const {width, height, url, base64} = file;
@@ -120,7 +129,6 @@ const MyForm: React.FC = () => {
                 url,
                 base64
             }
-            console.log('payload', payload)
             onValuesChange(payload)
         }
 
