@@ -140,6 +140,7 @@ function treeReducer(state: ITree = initialTreeState, action: any) {
 interface IContentBoxState {
     contentBoxKey: string
     position: IPosition
+    modalVisible: boolean
 }
 
 const initialPositionState: IContentBoxState = {
@@ -151,7 +152,8 @@ const initialPositionState: IContentBoxState = {
         top: 0,
         remote: 0,
         background: '#1890ff'
-    }
+    },
+    modalVisible: false
 }
 
 function contentBoxReducer(state: IContentBoxState = initialPositionState, action: any) {
@@ -167,6 +169,11 @@ function contentBoxReducer(state: IContentBoxState = initialPositionState, actio
                 position: {
                     ...action.payload
                 },
+            }
+        case 'setModalVisible':
+            return {
+                ...state,
+                modalVisible: action.payload,
             }
         default:
             return state;

@@ -25,6 +25,20 @@ const fontOptions = [
     'VisbyRoundCF-Bold'
 ]
 
+const moreFontOptions = [
+    'ALAKO_49',
+    'BAUHAUS_ITC',
+    'BELASTORIASCRIPT',
+    'Cookie',
+    'CORDIAUPC_76',
+    'JUST_LOVELY_ALT1_53',
+    'LOVER_BUNNY',
+    'MACONDOSWASHCAPS_REGULAR',
+    'SPECTRAL_76',
+    'TIMES_NEW_ROMAN',
+    'VALENCIA_53',
+    'WALLOWS_42'
+]
 
 const MyForm: React.FC = () => {
         const [form] = Form.useForm();
@@ -220,10 +234,10 @@ const MyForm: React.FC = () => {
                                 </Form.Item>
                                 <Form.Item label="字体" name="fontFamily">
                                     <Select>
-                                        {fontOptions.map(i => <Option key={i} value={i}>
+                                        {[...moreFontOptions, ...fontOptions].map(i => <Option key={i} value={i}>
                                 <span style={{
                                     fontFamily: i
-                                }}>ABCDEFGHIJKLMNOPQRSTUVXYZ</span>
+                                }}>{i}-ABCDEFGHIJKLMNOPQRSTUVXYZ</span>
                                         </Option>)}
                                     </Select>
                                 </Form.Item>

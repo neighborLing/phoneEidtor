@@ -5,6 +5,7 @@ import {useSelector} from "react-redux";
 import {IPosition} from '../../store/index.d';
 import {findCurrentNode} from "../../utils/tree";
 import _ from "lodash";
+import ThatBox from "../ThatBox";
 
 const cls = 'content-box';
 
@@ -252,6 +253,10 @@ const ContentBox = (props: IProps) => {
     let curBackground = isImageBackground ? imageBackground : curPosition.background;
     curBackground = curBackground;
 
+    {
+        contentBoxKey && !contentBoxKey.includes('root') && <ThatBox />
+    }
+
     return <div ref={boxRef}
                 id={selected ? 'selectedBox' : ''}
                 className={[cls, selected ? `${cls}-selected` : '', isImageBackground ? 'b-filter' : ''].join(' ')}
@@ -336,6 +341,9 @@ const ContentBox = (props: IProps) => {
       C 1,0.7,0.5,1,0.5,1 Z"/>
             </clipPath>
         </svg>
+        {
+            selected && <div className='centerPoint'></div>
+        }
     </div>;
 }
 

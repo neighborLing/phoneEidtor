@@ -8,3 +8,52 @@ image {
 * {
   user-select: none;
 }
+
+@font-face {
+  font-family: "ALAKO_49";
+  src: url("./assets/font/ALAKO_49.TTF");
+}
+@font-face {
+  font-family: "BAUHAUS_ITC";
+  src: url("./assets/font/BAUHAUS_ITC.TTF");
+}
+@font-face {
+  font-family: "BELASTORIASCRIPT";
+  src: url("./assets/font/BELASTORIASCRIPT.TTF");
+}
+@font-face {
+  font-family: "Cookie";
+  src: url("./assets/font/Cookie.TTF");
+}
+@font-face {
+  font-family: "CORDIAUPC_76";
+  src: url("./assets/font/CORDIAUPC_76.TTF");
+}
+@font-face {
+  font-family: "JUST_LOVELY_ALT1_53";
+  src: url("./assets/font/JUST_LOVELY_ALT1_53.TTF");
+}
+@font-face {
+  font-family: "LOVER_BUNNY";
+  src: url("./assets/font/LOVER_BUNNY.TTF");
+}
+@font-face {
+  font-family: "MACONDOSWASHCAPS_REGULAR";
+  src: url("./assets/font/MACONDOSWASHCAPS_REGULAR.TTF");
+}
+@font-face {
+  font-family: "SPECTRAL_76";
+  src: url("./assets/font/SPECTRAL_76.TTF");
+}
+@font-face {
+  font-family: "TIMES_NEW_ROMAN";
+  src: url("./assets/font/TIMES_NEW_ROMAN.TTF");
+}
+@font-face {
+  font-family: "VALENCIA_53";
+  src: url("./assets/font/VALENCIA_53.OTF");
+}
+@font-face {
+  font-family: "WALLOWS_42";
+  src: url("./assets/font/WALLOWS_42.TTF");
+}

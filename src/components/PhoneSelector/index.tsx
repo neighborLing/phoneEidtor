@@ -27,7 +27,7 @@ const Index = () => {
     const { phones: phoneTypes } = useSelector((state: any) => state.phones);
     const { showExportBox } = useSelector((state: any) => state.exportBox);
     const [selectedPhone, setSelectedPhone] = useState<PhoneType>(emptyPhone);
-    const { contentBoxKey, position } = useSelector((state: any) => state.contentBox);
+    const { contentBoxKey, modalVisible } = useSelector((state: any) => state.contentBox);
     
     useEffect(() => {
         setSelectedPhone(emptyPhone);
@@ -156,7 +156,7 @@ const Index = () => {
                 }
             </div>
             {
-                contentBoxKey && !contentBoxKey.includes('root') && <ThatBox />
+                !modalVisible && contentBoxKey && !contentBoxKey.includes('root') && <ThatBox />
             }
         </div>
     );

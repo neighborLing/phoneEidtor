@@ -326,10 +326,6 @@ const LayoutTree: React.FC = () => {
         const [form] = Form.useForm();
 
         const showModal = (type: 'add' | 'addChild' | 'delete') => {
-            store.dispatch({
-                type: 'setContentBoxKey',
-                payload: ''
-            })
             setModalVisible(true);
             form.resetFields();
             form.setFieldValue('nodeType', 'image')
@@ -451,7 +447,7 @@ const LayoutTree: React.FC = () => {
                     parentNode?.children?.push(...newItems)
                 }
             } else {
-                const curItem = findCurrentNode(tree, currentKey)
+                let curItem = findCurrentNode(tree, currentKey)
                 if (!curItem) {
                     return message.info('没找到')
                 }
@@ -481,6 +477,13 @@ const LayoutTree: React.FC = () => {
                 payload: ''
             })
         }
+        
+        useEffect(() => {
+            store.dispatch({
+                type: 'setModalVisible',
+                payload: modalVisible
+            })
+        }, [modalVisible])
 
         return (
             <div className={cls}>

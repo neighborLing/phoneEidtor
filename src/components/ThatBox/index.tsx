@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import './index.less';
 import store from "../../store/index";
 import {useSelector} from "react-redux";
@@ -28,11 +28,13 @@ const Rectangle: React.FC = () => {
     const [lt, setLt] = React.useState({left: 0, top: 0, remote: 0});
 
     useEffect(() => {
-        const curBox = document.querySelector('#selectedBox');
+        const curBox = document.querySelector('.centerPoint');
         //    获取绝对定位
         if (!curBox) return;
         const {left, top} = curBox.getBoundingClientRect();
-        setLt({left, top, remote: position.remote});
+        console.log('left', left)
+        console.log('top', top)
+        setLt({left: left - position.width / 2, top: top - position.height / 2, remote: position.remote});
     }, [position])
     const handleTopClick = () => {
         document.addEventListener('mousemove', handleTopMouseMove);
@@ -291,9 +293,11 @@ const Rectangle: React.FC = () => {
 
     const handleremoteMouseDown = (e) => {
         e.stopPropagation();
-        rotating = true
-        document.addEventListener('mousemove', handleremoteMouseMove);
-        document.addEventListener('mouseup', handleremoteMouseUp);
+        if (boxRef.current && !position.isLock) {
+            rotating = true
+            document.addEventListener('mousemove', handleremoteMouseMove);
+            document.addEventListener('mouseup', handleremoteMouseUp);
+        }
     }
 
     const handleremoteMouseUp = (e) => {
@@ -306,6 +310,7 @@ const Rectangle: React.FC = () => {
     const handleremoteMouseMove = (e) => {
         e.stopPropagation()
         const {left, top, width, height} = boxRef.current.getBoundingClientRect();
+        console.log('top', top)
         const centerPoint = {
             x: left + width / 2,
             y: top + height / 2
@@ -336,6 +341,8 @@ const Rectangle: React.FC = () => {
                 beforeLeft: position.left,
                 beforeTop: position.top,
             }
+        } else {
+            return
         }
         switch (type) {
             case 'top':
@@ -364,9 +371,17 @@ const Rectangle: React.FC = () => {
                 break
         }
     }
+    
+    const currentTreeNode = useMemo(() => {
+        const tree = store.getState().trees.tree
+        const cur = findCurrentNode(tree, contentBoxKey);
+        console.log('cur', cur)
+        
+        return cur
+    }, [contentBoxKey])
 
     return (
-        <div className="rectangle" onMouseDown={handleMouseDown} ref={boxRef} style={{ width: position.width, height: position.height, left: lt.left, top: lt.top, rotate: lt.remote + 'deg'  }}>
+        <div className="rectangle" onMouseDown={handleMouseDown} ref={boxRef} style={{ width: position.width, height: position.height, left: lt.left + 'px', top: lt.top + 'px', rotate: lt.remote + 'deg'  }}>
             {/* Top */}
             <div className="circle top" onMouseDown={(e) => handleResizeMouseDown(e, 'top')} />
             {/* Bottom */}
